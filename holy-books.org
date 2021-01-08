@@ -26,7 +26,8 @@ blog:header
 ;; Version: 1
 ;; Package-Requires: ((s "1.12.0") (dash "2.16.0") (emacs "26.1") (org "9.1"))
 ;; Keywords: quran, bible, links, tooltips, convenience, comm, hypermedia
-;; URL: https://github.com/alhassy/holy-books
+;; Repo: https://github.com/alhassy/holy-books
+;; Webpage: https://alhassy.github.io/holy-books/
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -150,7 +151,7 @@ badge:Hire|me|success|https://alhassy.github.io/about
 #+end_center
 #+begin_quote
 
-Let's use Org-mode links to look-up Quranic and Biblic verses!
+Let's use Org-mode links to look-up Quranic and Biblical verses!
 
 Links such as ~quran:chapter:verse~ will, upon export, retrieve
 the requested verse and inline it in the resulting text.
@@ -162,7 +163,7 @@ For now, only the Quran and the Bible are supported.
 
 /Super short example.../
 
-   #+begin_org-demo :source-color green :result-color white :style sequential
+   #+begin_org-demo :source-color green :result-color white :style sequential :sep ""
   Sometimes I start a task with the Lord's name--- basmala:darkgreen|20px|span
   ---which means quran:1:1|darkgreen.
   My friends like to say bible:Genesis:1:3|darkblue.
@@ -177,7 +178,7 @@ For now, only the Quran and the Bible are supported.
   :CUSTOM_ID: Longer-Example
   :END:
 
-   #+begin_org-demo :style sequential :source-color green :result-color white
+   #+begin_org-demo :style sequential :source-color green :result-color white :sep ""
  Sometimes I want to remember the words of the God of Abraham. In English Bibles,
  His name is “Elohim”, whereas in Arabic Bibles and the Quran, His name is
  “Allah”. We can use links to quickly access them, such as quran:7:157|darkgreen
@@ -550,7 +551,7 @@ These each take optional arguments separated by ‘|’; see doc:holy-books-qura
 and doc:holy-books-bible or see the full documentation online at
 badge:|HTML|informational|https://alhassy.github.io/holy-books/|ghost.
 
-** COMMENT Installation Instructions
+** Installation Instructions
    :PROPERTIES:
    :CUSTOM_ID: Installation-Instructions
    :END:
@@ -567,8 +568,11 @@ Manually or using [[https://github.com/alhassy/emacs.d#installing-emacs-packages
 ;; ⟨1′⟩ Or use: “M-x holy-books-mode” to turn it on/off
 #+END_SRC
 
-*Or* with [[https://github.com/alhassy/emacs.d#use-package-the-start-of-initel][use-package]]:
-#+BEGIN_SRC emacs-lisp :tangle no
+** COMMENT *Or* with [[https://github.com/alhassy/emacs.d#use-package-the-start-of-initel][use-package]]:
+   :PROPERTIES:
+   :CUSTOM_ID: COMMENT-Or-with-https-github-com-alhassy-emacs-d-use-package-the-start-of-initel-use-package
+   :END:
+ #+BEGIN_SRC emacs-lisp :tangle no
 (use-package holy-books
   :ensure t
   :hook (org-mode . holy-books-mode)
@@ -587,134 +591,7 @@ Manually or using [[https://github.com/alhassy/emacs.d#installing-emacs-packages
   ;; Use short names like ‘defblock’ instead of the fully qualified name
   ;; ‘holy-books--defblock’
     (holy-books-short-names))
-#+END_SRC
-
-Then, provide support for a new type of special block, say re-using the ~src~
-blocks that, say, folds up all such blocks in HTML export, by declaring the
-following.
-#+BEGIN_SRC emacs-lisp :tangle no
-(holy-books--defblock src (lang nil) (title nil exports nil file nil)
-  "Fold-away all ‘src’ blocks as ‘<details>’ HTML export.
-If a block has a ‘:title’, use that to title the ‘<details>’."
-  (format "<details> <summary> %s </summary> <pre> %s </pre></details>"
-          (or title (concat "Details; " lang))
-          raw-contents))
-#+END_SRC
-
-:Links_from_tdehaeze_reddit:
-14 days ago
-I have made some research, and I could find nice resources:
-
-- https://emacs.stackexchange.com/questions/44958/can-i-insert-a-prefix-to-org-babel-source-code-lines-on-export
-
-- https://stackoverflow.com/questions/38857751/show-tangled-file-name-in-org-mode-code-block-export
-
-- http://kitchingroup.cheme.cmu.edu/blog/2014/09/22/Showing-what-data-went-into-a-code-block-on-export/
-
-- https://lists.gnu.org/archive/html/emacs-orgmode/2016-10/msg00282.html
-
-- https://thibaultmarin.github.io/blog/posts/2016-11-13-Personal_website_in_org.html#org306eaa4
-
-
-
-Especially the last link were this seems to have been implemented. However it does not use "hooks" but rather define a new export back-end.
-
-I'll let you know if I can combine different thing I can find to make something that works.
-
-Cheers
-
---------------------------------------------------------------------------------
-
-Context: https://www.reddit.com/r/emacs/comments/k2whsy/declaring_new_special_blocks_with_arguments/gevyoml/?context=3
-:End:
-
-** COMMENT Minimal working example
-   :PROPERTIES:
-   :CUSTOM_ID: Minimal-working-example
-   :END:
-
-The following example showcases the prominent features of this library.
-
-#+begin_example org
-,#+begin_parallel
-[[color:orange][Are you excited to learn some Lisp?]] [[blue:Yes!]]
-
-Pop-quiz: How does doc:apply work?
-,#+end_parallel
-
-,#+begin_details Answer
-link-here:solution
-Syntactically, ~(apply f '(x0 ... xN)) = (f x0 ... xN)~.
-
-[[remark:Musa][Ain't that cool?]]
-
-,#+begin_spoiler aqua
-That is, [[color:magenta][we can ((apply)) a function to a list of arguments!]]
-,#+end_spoiler
-
-,#+end_details
-
-#+html: <br>
-,#+begin_box
-octoicon:report Note that kbd:C-x_C-e evaluates a Lisp form!
-,#+end_box
-
-#+LATEX_HEADER: \usepackage{multicol}
-#+LATEX_HEADER: \usepackage{tcolorbox}
-#+latex: In the LaTeX output, we have a glossary.
-
-show:GLOSSARY
-
-badge:Thanks|for_reading
-tweet:https://github.com/alhassy/holy-books
-badge:|buy_me_a coffee|gray|https://www.buymeacoffee.com/alhassy|buy-me-a-coffee
-#+end_example
-
-Here is what it looks like as HTML (left) and LaTeX (right):
-#+attr_html: :width 800px
-#+attr_latex: :width 100px
-[[file:images/minimal-working-example.png]]
-
-The above section, [[#practice_problems][‘practice problems’]], presents a few puzzles to get you
-comfortable with ~defblock~ ;-)
-
-** COMMENT Live MWE :ignore:
-   :PROPERTIES:
-   :CUSTOM_ID: Live-MWE
-   :END:
-
-#+begin_parallel
-[[color:orange][Are you excited to learn some Lisp?]] [[blue:Yes!]]
-
-Pop-quiz: How does doc:apply work?
-#+end_parallel
-
-#+begin_details Answer
-link-here:solution
-Syntactically, ~(apply f '(x0 ... xN)) = (f x0 ... xN)~.
-
-[[remark:Musa][Ain't that cool?]]
-
-#+begin_spoiler aqua
-That is, [[color:magenta][we can ((apply)) a function to a list of arguments!]]
-#+end_spoiler
-
-#+end_details
-
-#+html: <br>
-#+begin_box
-octoicon:report Note that kbd:C-x_C-e evaluates a Lisp form!
-#+end_box
-
-#+LATEX_HEADER: \usepackage{multicol}
-#+LATEX_HEADER: \usepackage{tcolorbox}
-#+latex: In the LaTeX output, we have a glossary.
-
-show:GLOSSARY
-
-badge:Thanks|for_reading
-tweet:https://github.com/alhassy/holy-books
-badge:|buy_me_a coffee|gray|https://www.buymeacoffee.com/alhassy|buy-me-a-coffee
+ #+END_SRC
 
 ** Bye!
    :PROPERTIES:
@@ -725,7 +602,7 @@ badge:thanks|for_reading
 tweet:https://github.com/alhassy/holy-books
 badge:|buy_me_a coffee|gray|https://www.buymeacoffee.com/alhassy|buy-me-a-coffee
 
-* Lisp Postamble                                                   :noexport:
+* Lisp Postamble  :noexport:
   :PROPERTIES:
   :CUSTOM_ID: Postamble
   :END:
@@ -736,7 +613,7 @@ badge:|buy_me_a coffee|gray|https://www.buymeacoffee.com/alhassy|buy-me-a-coffe
 
 ;;; holy-books.el ends here
 #+END_SRC
-* COMMENT MELPA Checks
+* MELPA Checks
   :PROPERTIES:
   :CUSTOM_ID: COMMENT-MELPA-Checks
   :END:
@@ -817,30 +694,39 @@ https://github.com/riscy/melpazoid
            #+BEGIN_SRC emacs-lisp :tangle ~/melpa/recipes/holy-books
     (holy-books :fetcher github :repo "alhassy/holy-books")
         #+END_SRC
-14. Produce a dedicated pull request branch
+14. Ensure the recipe builds successfully:
+    #+BEGIN_SRC shell :tangle no
+    cd ~/melpa; rm ~/melpa/packages/holy-books-*; make recipes/holy-books
+    #+END_SRC
+
+    If you have trouble, make a file "~/bin/emacs" with
+    the following which ensures “emacs” can be run
+    from the command line within macos.
+    #+begin_src shell :tangle "~/bin/emacs"
+#!/bin/sh
+/Applications/Emacs.app/Contents/MacOS/Emacs "$@"
+#+end_src
+
+15. Ensure the package installs properly from within Emacs:
+
+      #+BEGIN_SRC emacs-lisp :tangle no
+(package-install-file "~/melpa/packages/holy-books-")
+#+END_SRC
+      #+RESULTS:
+      : #s(package-desc holy-books (20200417 238) "Twenty-four new custom blocks for Org-mode" ((s (1 12 0)) (dash (2 16 0)) (emacs (24 4))) single nil nil ((:authors ("Musa Al-hassy" . "alhassy@gmail.com")) (:maintainer "Musa Al-hassy" . "alhassy@gmail.com") (:url . "https://alhassy.github.io/holy-books")) nil)
+16. Produce a dedicated pull request branch
 
     #+begin_src emacs-lisp :tangle no
     (magit-status "~/melpa")
     #+end_src
 
-    + Now =b c= to checkout a new branch.
-    + Push this branch on your melpa fork.
-    + Go to the https://github.com/melpa/ repo and
+    + ~F p~ to update the repo.
+    + Now =b c= to checkout a new branch: Select ~master~ then name the branch by
+      the name of the package, e.g., ~holy-books~.
+    + Commit your recipe.
+    + Push this branch on your melpa fork: ~P p~.
+    + Go to the https://github.com/melpa/melpa repo and
       there'll be a big green PR button ^_^
-15. Ensure the recipe builds successfully:
-    #+BEGIN_SRC shell :tangle no
-    cd ~/melpa; rm ~/melpa/packages/holy-books-*; make recipes/holy-books
-    #+END_SRC
-
-    #+RESULTS:
-    : • Building package holy-books ...
-16. Ensure the package installs properly from within Emacs:
-
-      #+BEGIN_SRC emacs-lisp :tangle no
-(package-install-file "~/melpa/packages/holy-books-20200417.238.el")
-#+END_SRC
-      #+RESULTS:
-      : #s(package-desc holy-books (20200417 238) "Twenty-four new custom blocks for Org-mode" ((s (1 12 0)) (dash (2 16 0)) (emacs (24 4))) single nil nil ((:authors ("Musa Al-hassy" . "alhassy@gmail.com")) (:maintainer "Musa Al-hassy" . "alhassy@gmail.com") (:url . "https://alhassy.github.io/holy-books")) nil)
 * COMMENT Making ~README.org~
   :PROPERTIES:
   :CUSTOM_ID: COMMENT-Making-README-org
@@ -853,19 +739,47 @@ https://github.com/riscy/melpazoid
 (with-temp-buffer
     (insert "
 ,#+EXPORT_FILE_NAME: README.md
-#+HTML: <h1> A unified interface for Emacs' Org-mode block & link types (•̀ᴗ•́)و </h1>
-#+HTML: <h2> Which is used to obtain 30 new custom blocks and 34 link types ¯\\_(ツ)_/¯ </h2>
+,#+HTML: <h1> An Emacs interface to the Quran and the Bible: Org-mode links, tooltips, and Lisp look-ups </h1>
+# +HTML: <h2>  ¯\\_(ツ)_/¯  </h2>
 ,#+OPTIONS: toc:nil d:nil broken-links:t
 ,#+html: <div align=\"center\">
-,#+INCLUDE: ~/holy-books/holy-books.org::#Abstract :only-contents t
+#   +INCLUDE: ~/holy-books/holy-books.org::#Abstract :only-contents t
 ,#+html: </div>
-# +TOC: headlines 2
-,* Installation Instructions
-,#+INCLUDE: ~/holy-books/holy-books.org::#Installation-Instructions :only-contents t
-,* Minimal working example
-,#+INCLUDE: ~/holy-books/holy-books.org::#Minimal-working-example :only-contents t
-,* Bye!
-,#+INCLUDE: ~/holy-books/holy-books.org::#Bye :only-contents t
+
+,#+html: <div align=\"center\">
+Let's use Org-mode links to look-up Quranic and Biblical verses!
+
+“Live” examples & documentation: https://alhassy.github.io/holy-books/
+
+badge:holy-books|1.0|informational|https://github.com/alhassy/holy-books|Gnu-Emacs
+
+# #+html: <a href=\"https://melpa.org/#/holy-books\"><img alt=\"MELPA\" src=\"https://melpa.org/packages/holy-books-badge.svg\"/></a>
+# #+html: </span>
+
+tweet:https://github.com/alhassy/holy-books
+badge:contributions|welcome|green|https://github.com/alhassy/holy-books/issues
+
+badge:author|musa_al-hassy|purple|https://alhassy.github.io/|nintendo-3ds
+badge:|buy_me_a coffee|gray|https://www.buymeacoffee.com/alhassy|buy-me-a-coffee
+
+badge:Hire|me|success|https://alhassy.github.io/about
+
+,#+html: </div>
+
+,#+TOC: headlines 2
+
+,* Short Example
+,#+attr_html: :width 600px
+file:images/short_example.png
+
+,* Long Example
+,#+attr_html: :width 600px
+file:images/long_example.png
+
+,* Summary
+,#+INCLUDE: ~/holy-books/holy-books.org::#Summary :only-contents t
+#  ,* Minimal working example
+#  #+INCLUDE: ~/holy-books/holy-books.org::#Minimal-working-example :only-contents t
 ")
     (let ((org-export-use-babel nil) (org-export-with-broken-links t))
       (org-mode)

@@ -6,7 +6,8 @@
 ;; Version: 1
 ;; Package-Requires: ((s "1.12.0") (dash "2.16.0") (emacs "26.1") (org "9.1"))
 ;; Keywords: quran, bible, links, tooltips, convenience, comm, hypermedia
-;; URL: https://github.com/alhassy/holy-books
+;; Repo: https://github.com/alhassy/holy-books
+;; Webpage: https://alhassy.github.io/holy-books/
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -27,7 +28,7 @@
 ;; when writing about the Quran and the Bible:
 ;;
 ;; 0. Links “quran:chapter:verse|colour|size|no-info-p”, or just “quran:chapter:verse”
-;;    for retrieving a verse from the Quran.  Use “Quran:chapter:verse” to HTML export
+;;    for retrieving a verse from the Quran. Use “Quran:chapter:verse” to HTML export
 ;;    as a tooltip.
 ;;
 ;; 1. Likewise, “bible:book:chapter:verse”.
@@ -39,9 +40,9 @@
 ;;
 ;; Minimal Working Example:
 ;;
-;; Sometimes I want to remember the words of the God of Abraham.  In English Bibles,
+;; Sometimes I want to remember the words of the God of Abraham. In English Bibles,
 ;; His name is “Elohim”, whereas in Arabic Bibles and the Quran, His name is
-;; “Allah”.  We can use links to quickly access them, such as Quran:7:157|darkgreen
+;; “Allah”. We can use links to quickly access them, such as Quran:7:157|darkgreen
 ;; and bible:Deuteronomy:18:18-22|darkblue.  Arab-speaking Christians and Muslims
 ;; use the Unicode symbol [[green:ﷲ]] to refer to Him ---e.g., they would write ﷲ ﷳ ,
 ;; “Allah akbar”, to declare the greatness of God-- and, as the previous passage

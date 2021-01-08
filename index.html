@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2021-01-07 Thu 21:34 -->
+<!-- 2021-01-07 Thu 22:42 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>holy-books</title>
@@ -457,7 +457,7 @@
 </p>
 
 <p>
-Let's use Org-mode links to look-up Quranic and Biblic verses!
+Let's use Org-mode links to look-up Quranic and Biblical verses!
 </p>
 
 <p>
@@ -485,9 +485,11 @@ For now, only the Quran and the Bible are supported.
 </li>
 <li><a href="#Summary">6. <a href="#Summary">Summary</a></a>
 <ul>
-<li><a href="#Bye">6.1. <a href="#Bye">Bye!</a></a></li>
+<li><a href="#Installation-Instructions">6.1. <a href="#Installation-Instructions">Installation Instructions</a></a></li>
+<li><a href="#Bye">6.2. <a href="#Bye">Bye!</a></a></li>
 </ul>
 </li>
+<li><a href="#COMMENT-MELPA-Checks">7. <a href="#COMMENT-MELPA-Checks">MELPA Checks</a></a></li>
 </ul>
 </div>
 </div>
@@ -501,14 +503,17 @@ For now, only the Quran and the Bible are supported.
 
 <div style="padding: 1em; background-color: #CCFFCC;border-radius: 15px; font-size: 0.9em; box-shadow: 0.05em 0.1em 5px 0.01em #00000057;"><h3>Source</h3>
 
-Sometimes I start a task with the Lord's name, basmala:darkgreen|20px|span<br>  ---which means quran:1:1|darkgreen.<br>  My friends like to say bible:Genesis:1:3|darkblue.<br>
+<div ><pre class="src src-org">  Sometimes I start a task with the Lord's name--- basmala:darkgreen|20px|span
+  ---which means quran:1:1|darkgreen.
+  My friends like to say bible:Genesis:1:3|darkblue.
+</pre></div>
 
 </div>
 
 
 <div style="padding: 1em; background-color: white;border-radius: 15px; font-size: 0.9em; box-shadow: 0.05em 0.1em 5px 0.01em #00000057;"><h3>Result</h3>
 <p>
-Sometimes I start a task with the Lord's name, <span style="color:darkgreen;font-size:20px;padding:25px">
+Sometimes I start a task with the Lord's name&#x2014; <span style="color:darkgreen;font-size:20px;padding:25px">
                      ﷽
                 </span>
 &#x2014;which means <span style="color:darkgreen;font-size:nil;">
@@ -524,7 +529,7 @@ My friends like to say <span style="color:darkblue;font-size:nil;">
 
 <div style="padding: 1em; background-color: #FFFFCC;border-radius: 15px; font-size: 0.9em; box-shadow: 0.05em 0.1em 5px 0.01em #00000057;"><h3>Tooltips: Using Capitalisation ‘Quran:⋯’ and ‘Bible:⋯’</h3>
 <p>
- Sometimes I start a task with the Lord's name, <span style="color:darkgreen;font-size:20px;padding:25px">
+ Sometimes I start a task with the Lord's name&#x2014; <span style="color:darkgreen;font-size:20px;padding:25px">
                      ﷽
                 </span>
 &#x2014;which means <abbr class="tooltip"
@@ -539,7 +544,6 @@ My friends like to say <abbr class="tooltip"
 </p>
 
 </div>
-
 <div id="outline-container-Longer-Example" class="outline-2">
 <h2 id="Longer-Example"><span class="section-number-2">1</span> <a href="#Longer-Example">Longer Example</a></h2>
 <div class="outline-text-2" id="text-Longer-Example">
@@ -547,7 +551,17 @@ My friends like to say <abbr class="tooltip"
 
 <div style="padding: 1em; background-color: #CCFFCC;border-radius: 15px; font-size: 0.9em; box-shadow: 0.05em 0.1em 5px 0.01em #00000057;"><h3>Source</h3>
 
-Sometimes I want to remember the words of the God of Abraham. In English Bibles,<br> His name is “Elohim”, whereas in Arabic Bibles and the Quran, His name is<br> “Allah”. We can use links to quickly access them, such as quran:7:157|darkgreen<br> and bible:Deuteronomy:18:18-22|darkblue.  Arab-speaking Christians and Muslims<br> use the Unicode symbol [[green:ﷲ]] to refer to Him ---e.g., they would write ﷲ ﷳ ,<br> “Allah akbar”, to declare the greatness of God-- and, as the previous passage<br> says “in the name of the Lord”, there is a nice calligraphic form that is used<br> by Arabic speakers when starting a task, namely [[basmala:darkgreen|20px|span]]<br> ---this is known as the ‘basmalallah’, which is Arabic for “name of God”.<br> (Using capitalised ‘Quran:⋯’ and ‘Bible:⋯’ results in tooltips.)<br>
+<div ><pre class="src src-org"> Sometimes I want to remember the words of the God of Abraham. In English Bibles,
+ His name is “Elohim”, whereas in Arabic Bibles and the Quran, His name is
+ “Allah”. We can use links to quickly access them, such as quran:7:157|darkgreen
+ and bible:Deuteronomy:18:18-22|darkblue.  Arab-speaking Christians and Muslims
+ use the Unicode symbol [[green:ﷲ]] to refer to Him ---e.g., they would write ﷲ ﷳ ,
+ “Allah akbar”, to declare the greatness of God-- and, as the previous passage
+ says “in the name of the Lord”, there is a nice calligraphic form that is used
+ by Arabic speakers when starting a task, namely [[basmala:darkgreen|20px|span]]
+ ---this is known as the ‘basmalallah’, which is Arabic for “name of God”.
+ (Using capitalised ‘Quran:⋯’ and ‘Bible:⋯’ results in tooltips.)
+</pre></div>
 
 </div>
 
@@ -617,7 +631,6 @@ by Arabic speakers when starting a task, namely <span style="color:darkgreen;fon
 </div>
 </div>
 </div>
-
 
 <div id="outline-container-Yet-Another-Example" class="outline-2">
 <h2 id="Yet-Another-Example"><span class="section-number-2">2</span> <a href="#Yet-Another-Example">Yet Another Example</a></h2>
@@ -1050,8 +1063,28 @@ and <abbr class="tooltip" title="Retrive a verse from the Christian Bible.<br><b
 </p>
 </div>
 
+<div id="outline-container-Installation-Instructions" class="outline-3">
+<h3 id="Installation-Instructions"><span class="section-number-3">6.1</span> <a href="#Installation-Instructions">Installation Instructions</a></h3>
+<div class="outline-text-3" id="text-Installation-Instructions">
+<p>
+Manually or using <a href="https://github.com/alhassy/emacs.d#installing-emacs-packages-directly-from-source">quelpa</a>:
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"><span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">&#10216;0&#10217; Download the holy-books.el file manually or using quelpa</span>
+(<span style="color: #6c3163; font-weight: bold;">quelpa</span> '(holy-books <span style="color: #3a81c3;">:fetcher</span> github <span style="color: #3a81c3;">:repo</span>
+<span style="color: #2d9574;">"alhassy/holy-books"</span>))
+
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">&#10216;1&#10217; Have this always active in Org buffers</span>
+(<span style="color: #6c3163; font-weight: bold;">add-hook</span> #'<span style="color: #715ab1;">org-mode-hook</span> #'<span style="color: #6c3163; font-weight: bold;">holy-books-mode</span>)
+
+<span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">&#10216;1&#8242;&#10217; Or use: &#8220;M-x holy-books-mode&#8221; to turn it on/off</span>
+</pre>
+</div>
+</div>
+</div>
+
 <div id="outline-container-Bye" class="outline-3">
-<h3 id="Bye"><span class="section-number-3">6.1</span> <a href="#Bye">Bye!</a></h3>
+<h3 id="Bye"><span class="section-number-3">6.2</span> <a href="#Bye">Bye!</a></h3>
 <div class="outline-text-3" id="text-Bye">
 <p>
 <img src="https://img.shields.io/badge/thanks-for_reading-nil?logo=nil">
@@ -1061,10 +1094,117 @@ and <abbr class="tooltip" title="Retrive a verse from the Christian Bible.<br><b
 </div>
 </div>
 </div>
+
+<div id="outline-container-COMMENT-MELPA-Checks" class="outline-2">
+<h2 id="COMMENT-MELPA-Checks"><span class="section-number-2">7</span> <a href="#COMMENT-MELPA-Checks">MELPA Checks</a></h2>
+<div class="outline-text-2" id="text-COMMENT-MELPA-Checks">
+<p>
+<a href="https://github.com/riscy/melpazoid">https://github.com/riscy/melpazoid</a>
+</p>
+
+<ol class="org-ol">
+<li>In Github repo: Add file ⇒ Create new file ⇒ License.txt ⇒ Select template ⇒ GNU 3</li>
+<li>Ensure first line ends with: -<b>- lexical-binding: t; -</b>-</li>
+<li><p>
+Include appropriate standard keywords;
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #6c3163; font-weight: bold;">pp</span> <span style="color: #715ab1;">finder-known-keywords</span>)
+</pre>
+</div></li>
+<li>Use #' instead of ' for function symbols</li>
+<li>Use ‘-’ as a separator, not ‘/’.</li>
+<li>Consider reading:
+<a href="https://github.com/bbatsov/emacs-lisp-style-guide#the-emacs-lisp-style-guide">https://github.com/bbatsov/emacs-lisp-style-guide#the-emacs-lisp-style-guide</a></li>
+<li>Use cl-loop, cl-first, cl-second, cl-third instead of loop, first, second, third</li>
+<li>byte-compile and address any concerns</li>
+<li><code>M-x checkdoc</code> on the lisp file to ensure it passes expected style issues.
+<ul class="org-ul">
+<li>Symbols <code>nil, t</code> should not appear in single quotes.</li>
+<li>(progn (setq fill-column 80) (display-fill-column-indicator-mode))</li>
+</ul></li>
+<li>Ensure it byte-compiles without any problems.</li>
+<li><p>
+Ensure that package-linter raises no issues; i.e., the following has no result.
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp"> (<span style="color: #3a81c3; font-weight: bold;">use-package</span> <span style="color: #4e3163;">package-lint</span>)
+ (<span style="color: #3a81c3; font-weight: bold;">-let</span> [it <span style="color: #2d9574;">"holy-books.el"</span>]
+  (<span style="color: #3a81c3; font-weight: bold;">ignore-errors</span> (<span style="color: #6c3163; font-weight: bold;">kill-buffer</span> it))
+  (<span style="color: #6c3163; font-weight: bold;">find-file-other-window</span> it)
+  (<span style="color: #6c3163; font-weight: bold;">package-lint-buffer</span> it)
+  (<span style="color: #6c3163; font-weight: bold;">switch-to-buffer</span> <span style="color: #2d9574;">"*Package-Lint*"</span>)) <span style="color: #2aa1ae; background-color: #ecf3ec;">;; </span><span style="color: #2aa1ae; background-color: #ecf3ec;">Should say: &#8220;No issues found.&#8221;</span>
+</pre>
+</div></li>
+<li>Commit and push everything in your project's repo!</li>
+<li><p>
+Create a recipe file by invoking: M-x package-build-create-recipe
+&#x2014;first: (use-package package-build)
+</p>
+<ul class="org-ul">
+<li>Place it in: melpa/recipes/</li>
+<li>The name of the file should be the name of the package, no extension.</li>
+</ul>
+
+<p>
+<b>Or:</b> Uncomment this section &amp; just tangle the following.
+</p>
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">    (holy-books <span style="color: #3a81c3;">:fetcher</span> github <span style="color: #3a81c3;">:repo</span> <span style="color: #2d9574;">"alhassy/holy-books"</span>)
+</pre>
+</div></li>
+<li><p>
+Ensure the recipe builds successfully:
+</p>
+<div class="org-src-container">
+<pre class="src src-shell">    <span style="color: #3a81c3;">cd</span> ~/melpa; rm ~/melpa/packages/holy-books-*; make recipes/holy-books
+</pre>
+</div>
+
+<p>
+If you have trouble, make a file "~/bin/emacs" with
+the following which ensures “emacs” can be run
+from the command line within macos.
+</p>
+<div class="org-src-container">
+<pre class="src src-shell"><span style="color: #2aa1ae; background-color: #ecf3ec;">#</span><span style="color: #2aa1ae; background-color: #ecf3ec;">!/bin/</span><span style="color: #3a81c3; font-weight: bold;">sh</span>
+/Applications/Emacs.app/Contents/MacOS/Emacs <span style="color: #2d9574;">"$@"</span>
+</pre>
+</div></li>
+
+<li><p>
+Ensure the package installs properly from within Emacs:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">(<span style="color: #6c3163; font-weight: bold;">package-install-file</span> <span style="color: #2d9574;">"~/melpa/packages/holy-books-"</span>)
+</pre>
+</div></li>
+<li><p>
+Produce a dedicated pull request branch
+</p>
+
+<div class="org-src-container">
+<pre class="src src-emacs-lisp">    (<span style="color: #6c3163; font-weight: bold;">magit-status</span> <span style="color: #2d9574;">"~/melpa"</span>)
+</pre>
+</div>
+
+<ul class="org-ul">
+<li><code>F p</code> to update the repo.</li>
+<li>Now <code>b c</code> to checkout a new branch: Select <code>master</code> then name the branch by
+the name of the package, e.g., <code>holy-books</code>.</li>
+<li>Commit your recipe.</li>
+<li>Push this branch on your melpa fork: <code>P p</code>.</li>
+<li>Go to the <a href="https://github.com/melpa/melpa">https://github.com/melpa/melpa</a> repo and
+there'll be a big green PR button ^_^</li>
+</ul></li>
+</ol>
+</div>
+</div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: <a href="https://alhassy.github.io/">Musa Al-hassy</a></p>
-<p class="date">Created: 2021-01-07 Thu 21:34</p>
+<p class="date">Created: 2021-01-07 Thu 22:42</p>
 <p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>
