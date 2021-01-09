@@ -71,6 +71,14 @@ Each key in the plist refers to a chapter, and the values are plists:
 Keys are verses numbers and values are the actual verses ---but there is
 a special key ‘:name’ whose value is the Arabic-English name of the chapter.")
 
+(defvar holy-books-quran-translation "131"
+  "Variable the defines the translation to be used.
+
+        131 -- Dr. Mustafa Khattab, the Clear Quran
+
+        List of translations can be found here: https://quran.api-docs.io/v3/options/translations")
+
+
 (defun holy-books-quran (chapter verse)
   "Lookup a verse, as a string, from the Quran.
 
@@ -111,7 +119,7 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
     (unless (cl-getf (cl-getf holy-books-quran-cache chapter) :name)
       (switch-to-buffer
        (url-retrieve-synchronously
-        (format "https://quran.com/%s/%s?translations=131" chapter verse)))
+        (format "https://quran.com/%s/%s?translations=%s" chapter verse holy-books-quran-translation)))
       (re-search-forward (format "\"%s " chapter))
       (setq start (point))
       (end-of-line)
@@ -125,69 +133,69 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
         (s-join " ")
         (setf (cl-getf (cl-getf holy-books-quran-cache chapter) :name))))
 
-  ;; get the actual verse requested
-  (--if-let (cl-getf (cl-getf holy-books-quran-cache chapter) verse)
-      it
-    (switch-to-buffer
-     (url-retrieve-synchronously
-      (format "https://quran.com/%s/%s?translations=131" chapter verse)))
-    (re-search-forward "Dr. Mustafa Khattab, the Clear Quran")
-    (forward-line -2)
-    (beginning-of-line)
-    (setq start (point))
-    (end-of-line)
-    (setq result (buffer-substring-no-properties start (point)))
-    (kill-buffer)
-    (thread-last (decode-coding-string result 'utf-8)
-      (s-replace-regexp "<sup.*sup>" "")
-      (setf (cl-getf (cl-getf holy-books-quran-cache chapter) verse))))))
+    ;; get the actual verse requested
+    (--if-let (cl-getf (cl-getf holy-books-quran-cache chapter) verse)
+        it
+      (switch-to-buffer
+       (url-retrieve-synchronously
+        (format "https://quran.com/%s/%s?translations=%s" chapter verse holy-books-quran-translation)))
+      (re-search-forward "d-block resource")
+      (forward-line -2)
+      (beginning-of-line)
+      (setq start (point))
+      (end-of-line)
+      (setq result (buffer-substring-no-properties start (point)))
+      (kill-buffer)
+      (thread-last (decode-coding-string result 'utf-8)
+        (s-replace-regexp "<sup.*sup>" "")
+        (setf (cl-getf (cl-getf holy-books-quran-cache chapter) verse))))))
 
 ;; quran:chapter:verse|color|size|no-info-p
 (org-link-set-parameters
-  "quran"
-  :follow (lambda (_) nil)
-  :export (lambda (label _ __)
-            (-let* (((chapter:verse color size no-info-p) (s-split "|" label))
-                    ((chapter verse) (s-split ":" chapter:verse)))
-              (format "<span style=\"color:%s;font-size:%s;\">
+ "quran"
+ :follow (lambda (_) nil)
+ :export (lambda (label _ __)
+           (-let* (((chapter:verse color size no-info-p) (s-split "|" label))
+                   ((chapter verse) (s-split ":" chapter:verse)))
+             (format "<span style=\"color:%s;font-size:%s;\">
                              ﴾<em> %s</em>﴿ %s
                        </span>"
-                      color size
-                      (holy-books-quran chapter verse)
-                      (if no-info-p
-                          ""
-                        (format
-                         (concat
-                          "<small>"
-                            "<a href="
-                               "\"https://quran.com/chapter_info/%s?local=en\">"
-                              "Quran %s:%s, %s"
-                             "</a>"
-                          "</small>")
-                         chapter
-                         chapter
-                         verse
-                         (cl-getf (cl-getf holy-books-quran-cache chapter)
-                                  :name))))))
-  :face '(:foreground "green" :weight bold))
+                     color size
+                     (holy-books-quran chapter verse)
+                     (if no-info-p
+                         ""
+                       (format
+                        (concat
+                         "<small>"
+                         "<a href="
+                         "\"https://quran.com/chapter_info/%s?local=en\">"
+                         "Quran %s:%s, %s"
+                         "</a>"
+                         "</small>")
+                        chapter
+                        chapter
+                        verse
+                        (cl-getf (cl-getf holy-books-quran-cache chapter)
+                                 :name))))))
+ :face '(:foreground "green" :weight bold))
 
 
 ;; Quran:chapter:verse|color|size|no-info-p
 (org-link-set-parameters
-  "Quran"
-  :follow (lambda (_) nil)
-  :export (lambda (label _ __)
-            (-let* (((chapter:verse _ __ ___) (s-split "|" label))
-                    ((chapter verse) (s-split ":" chapter:verse)))
-              (format "<abbr class=\"tooltip\"
+ "Quran"
+ :follow (lambda (_) nil)
+ :export (lambda (label _ __)
+           (-let* (((chapter:verse _ __ ___) (s-split "|" label))
+                   ((chapter verse) (s-split ":" chapter:verse)))
+             (format "<abbr class=\"tooltip\"
                              title=\"﴾<em> %s</em>﴿ <br><br> %s <br><br> %s\">
                           Quran %s:%s
                        </abbr>&emsp13;"
-                      (holy-books-quran chapter verse)
-                      (cl-getf (cl-getf holy-books-quran-cache chapter) :name)
-                      (format "https://quran.com/%s" chapter)
-                      chapter verse)))
-  :face '(:foreground "green" :weight bold))
+                     (holy-books-quran chapter verse)
+                     (cl-getf (cl-getf holy-books-quran-cache chapter) :name)
+                     (format "https://quran.com/%s" chapter)
+                     chapter verse)))
+ :face '(:foreground "green" :weight bold))
 
 (defun holy-books-bible (book chapter verses)
   "Retrive a verse from the Christian Bible.

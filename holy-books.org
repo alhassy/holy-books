@@ -271,6 +271,14 @@ Each key in the plist refers to a chapter, and the values are plists:
 Keys are verses numbers and values are the actual verses ---but there is
 a special key ‘:name’ whose value is the Arabic-English name of the chapter.")
 
+(defvar holy-books-quran-translation "131"
+  "Variable the defines the translation to be used.
+
+        131 -- Dr. Mustafa Khattab, the Clear Quran
+
+        List of translations can be found here: https://quran.api-docs.io/v3/options/translations")
+
+
 (defun holy-books-quran (chapter verse)
   "Lookup a verse, as a string, from the Quran.
 
@@ -311,7 +319,7 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
     (unless (cl-getf (cl-getf holy-books-quran-cache chapter) :name)
       (switch-to-buffer
        (url-retrieve-synchronously
-        (format "https://quran.com/%s/%s?translations=131" chapter verse)))
+        (format "https://quran.com/%s/%s?translations=%s" chapter verse holy-books-quran-translation)))
       (re-search-forward (format "\"%s " chapter))
       (setq start (point))
       (end-of-line)
@@ -325,22 +333,22 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
         (s-join " ")
         (setf (cl-getf (cl-getf holy-books-quran-cache chapter) :name))))
 
-  ;; get the actual verse requested
-  (--if-let (cl-getf (cl-getf holy-books-quran-cache chapter) verse)
-      it
-    (switch-to-buffer
-     (url-retrieve-synchronously
-      (format "https://quran.com/%s/%s?translations=131" chapter verse)))
-    (re-search-forward "Dr. Mustafa Khattab, the Clear Quran")
-    (forward-line -2)
-    (beginning-of-line)
-    (setq start (point))
-    (end-of-line)
-    (setq result (buffer-substring-no-properties start (point)))
-    (kill-buffer)
-    (thread-last (decode-coding-string result 'utf-8)
-      (s-replace-regexp "<sup.*sup>" "")
-      (setf (cl-getf (cl-getf holy-books-quran-cache chapter) verse))))))
+    ;; get the actual verse requested
+    (--if-let (cl-getf (cl-getf holy-books-quran-cache chapter) verse)
+        it
+      (switch-to-buffer
+       (url-retrieve-synchronously
+        (format "https://quran.com/%s/%s?translations=%s" chapter verse holy-books-quran-translation)))
+      (re-search-forward "d-block resource")
+      (forward-line -2)
+      (beginning-of-line)
+      (setq start (point))
+      (end-of-line)
+      (setq result (buffer-substring-no-properties start (point)))
+      (kill-buffer)
+      (thread-last (decode-coding-string result 'utf-8)
+        (s-replace-regexp "<sup.*sup>" "")
+        (setf (cl-getf (cl-getf holy-books-quran-cache chapter) verse))))))
 
 ;; quran:chapter:verse|color|size|no-info-p
 (org-link-set-parameters
@@ -566,6 +574,10 @@ Manually or using [[https://github.com/alhassy/emacs.d#installing-emacs-packages
 (add-hook #'org-mode-hook #'holy-books-mode)
 
 ;; ⟨1′⟩ Or use: “M-x holy-books-mode” to turn it on/off
+
+;; ⟨2⟩ Configure the translation
+(setq holy-books-quran-translation "131")
+;; 131 - Dr. Mustafa Khattab, the Clear Quran is the default. The list to choose from is available here: https://quran.api-docs.io/v3/options/translations
 #+END_SRC
 
 ** COMMENT *Or* with [[https://github.com/alhassy/emacs.d#use-package-the-start-of-initel][use-package]]:
