@@ -574,6 +574,10 @@ Manually or using [[https://github.com/alhassy/emacs.d#installing-emacs-packages
 (add-hook #'org-mode-hook #'holy-books-mode)
 
 ;; ⟨1′⟩ Or use: “M-x holy-books-mode” to turn it on/off
+
+;; ⟨2⟩ Configure the translation
+(setq holy-books-quran-translation "131")
+;; 131 - Dr. Mustafa Khattab, the Clear Quran is the default. The list to choose from is available here: https://quran.api-docs.io/v3/options/translations
 #+END_SRC
 
 ** COMMENT *Or* with [[https://github.com/alhassy/emacs.d#use-package-the-start-of-initel][use-package]]:
