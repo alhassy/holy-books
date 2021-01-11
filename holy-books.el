@@ -3,11 +3,11 @@
 ;; Copyright (c) 2021 Musa Al-hassy
 
 ;; Author: Musa Al-hassy <alhassy@gmail.com>
-;; Version: 1
-;; Package-Requires: ((s "1.12.0") (dash "2.16.0") (emacs "26.1") (org "9.1"))
+;; Version: 1.2
+;; Package-Requires: ((s "1.12.0") (dash "2.16.0") (emacs "27.1") (org "9.1"))
 ;; Keywords: quran, bible, links, tooltips, convenience, comm, hypermedia
 ;; Repo: https://github.com/alhassy/holy-books
-;; Webpage: https://alhassy.github.io/holy-books/
+;; Homepage: https://alhassy.github.io/holy-books/
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,21 +28,24 @@
 ;; when writing about the Quran and the Bible:
 ;;
 ;; 0. Links “quran:chapter:verse|colour|size|no-info-p”, or just “quran:chapter:verse”
-;;    for retrieving a verse from the Quran. Use “Quran:chapter:verse” to HTML export
-;;    as a tooltip.
+;;    for retrieving a verse from the Quran.  Use “Quran:chapter:verse” to HTML export
+;;    as a tooltip.  The particular translation can be selected by altering the
+;;    HOLY-BOOKS-QURAN-TRANSLAITON variable.
 ;;
 ;; 1. Likewise, “bible:book:chapter:verse”.
+;;    The particular version can be selected by altering the
+;;    HOLY-BOOKS-BIBLE-VERSION variable.
 ;;
-;; 2. Two functions, holy-books-quran and holy-books-bible that do the heavy
+;; 2. Two functions, HOLY-BOOKS-QURAN and HOLY-BOOKS-BIBLE that do the heavy
 ;;    work of the link types.
 ;;
 ;; 3. A link type to produce the Arabic basmallah; e.g., “basmala:darkgreen|20px|span”.
 ;;
 ;; Minimal Working Example:
 ;;
-;; Sometimes I want to remember the words of the God of Abraham. In English Bibles,
+;; Sometimes I want to remember the words of the God of Abraham.  In English Bibles,
 ;; His name is “Elohim”, whereas in Arabic Bibles and the Quran, His name is
-;; “Allah”. We can use links to quickly access them, such as Quran:7:157|darkgreen
+;; “Allah”.  We can use links to quickly access them, such as Quran:7:157|darkgreen
 ;; and bible:Deuteronomy:18:18-22|darkblue.  Arab-speaking Christians and Muslims
 ;; use the Unicode symbol [[green:ﷲ]] to refer to Him ---e.g., they would write ﷲ ﷳ ,
 ;; “Allah akbar”, to declare the greatness of God-- and, as the previous passage
@@ -64,6 +67,17 @@
 (require 'cl-lib)          ;; New Common Lisp library; ‘cl-???’ forms.
 (require 'org)
 
+(defconst holy-books-version (package-get-version))
+(defun holy-books-version ()
+  "Print the current holy-books version in the minibuffer."
+  (interactive)
+  (message holy-books-version))
+
+;;;###autoload
+(define-minor-mode holy-books-mode
+    "Org-mode links, tooltips, and Lisp look-ups for the Quran & Bible."
+  nil nil nil)
+
 (defvar holy-books-quran-cache nil
   "A plist storing the verses looked up by ‘holy-books-quran’ for faster reuse.
 
@@ -74,10 +88,10 @@ a special key ‘:name’ whose value is the Arabic-English name of the chapter.
 (defvar holy-books-quran-translation "131"
   "Variable the defines the translation to be used.
 
-        131 -- Dr. Mustafa Khattab, the Clear Quran
+        131 -- Dr.  Mustafa Khattab, the Clear Quran
 
-        List of translations can be found here: https://quran.api-docs.io/v3/options/translations")
-
+List of translations can be found at:
+https://quran.api-docs.io/v3/options/translations")
 
 (defun holy-books-quran (chapter verse)
   "Lookup a verse, as a string, from the Quran.
@@ -86,7 +100,7 @@ CHAPTER and VERSE are both numbers, referring to a chapter in the Quran
 and a verse it contains.
 In the associated Org link, both are treated as strings.
 
-+ Lookups are stored in the variable `holy-books-quran-cache' for faster resuse.
++ Lookups are stored in the variable `holy-books-quran-cache' for faster reuse.
 + Quran lookup is based on https://quran.com .
 + Examples:
 
@@ -95,6 +109,9 @@ In the associated Org link, both are treated as strings.
 
     ;; Get English-Arabic name of 7th chapter
     (cl-getf (cl-getf holy-books-quran 7) :name)
+
+The particular translation can be selected by altering the
+HOLY-BOOKS-QURAN-TRANSLAITON variable.
 
 --------------------------------------------------------------------------------
 
@@ -119,7 +136,8 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
     (unless (cl-getf (cl-getf holy-books-quran-cache chapter) :name)
       (switch-to-buffer
        (url-retrieve-synchronously
-        (format "https://quran.com/%s/%s?translations=%s" chapter verse holy-books-quran-translation)))
+        (format "https://quran.com/%s/%s?translations=%s"
+                chapter verse holy-books-quran-translation)))
       (re-search-forward (format "\"%s " chapter))
       (setq start (point))
       (end-of-line)
@@ -138,7 +156,8 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
         it
       (switch-to-buffer
        (url-retrieve-synchronously
-        (format "https://quran.com/%s/%s?translations=%s" chapter verse holy-books-quran-translation)))
+        (format "https://quran.com/%s/%s?translations=%s"
+                chapter verse holy-books-quran-translation)))
       (re-search-forward "d-block resource")
       (forward-line -2)
       (beginning-of-line)
@@ -152,50 +171,72 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
 
 ;; quran:chapter:verse|color|size|no-info-p
 (org-link-set-parameters
- "quran"
- :follow (lambda (_) nil)
- :export (lambda (label _ __)
-           (-let* (((chapter:verse color size no-info-p) (s-split "|" label))
-                   ((chapter verse) (s-split ":" chapter:verse)))
-             (format "<span style=\"color:%s;font-size:%s;\">
+  "quran"
+  :follow (lambda (_) nil)
+  :export (lambda (label _ __)
+            (-let* (((chapter:verse color size no-info-p) (s-split "|" label))
+                    ((chapter verse) (s-split ":" chapter:verse)))
+              (format "<span style=\"color:%s;font-size:%s;\">
                              ﴾<em> %s</em>﴿ %s
                        </span>"
-                     color size
-                     (holy-books-quran chapter verse)
-                     (if no-info-p
-                         ""
-                       (format
-                        (concat
-                         "<small>"
-                         "<a href="
-                         "\"https://quran.com/chapter_info/%s?local=en\">"
-                         "Quran %s:%s, %s"
-                         "</a>"
-                         "</small>")
-                        chapter
-                        chapter
-                        verse
-                        (cl-getf (cl-getf holy-books-quran-cache chapter)
-                                 :name))))))
- :face '(:foreground "green" :weight bold))
+                      color size
+                      (holy-books-quran chapter verse)
+                      (if no-info-p
+                          ""
+                        (format
+                         (concat
+                          "<small>"
+                            "<a href="
+                               "\"https://quran.com/chapter_info/%s?local=en\">"
+                              "Quran %s:%s, %s"
+                             "</a>"
+                          "</small>")
+                         chapter
+                         chapter
+                         verse
+                         (cl-getf (cl-getf holy-books-quran-cache chapter)
+                                  :name))))))
+  :face '(:foreground "green" :weight bold))
 
 
 ;; Quran:chapter:verse|color|size|no-info-p
 (org-link-set-parameters
- "Quran"
- :follow (lambda (_) nil)
- :export (lambda (label _ __)
-           (-let* (((chapter:verse _ __ ___) (s-split "|" label))
-                   ((chapter verse) (s-split ":" chapter:verse)))
-             (format "<abbr class=\"tooltip\"
+  "Quran"
+  :follow (lambda (_) nil)
+  :export (lambda (label _ __)
+            (-let* (((chapter:verse _ __ ___) (s-split "|" label))
+                    ((chapter verse) (s-split ":" chapter:verse)))
+              (format "<abbr class=\"tooltip\"
                              title=\"﴾<em> %s</em>﴿ <br><br> %s <br><br> %s\">
                           Quran %s:%s
                        </abbr>&emsp13;"
-                     (holy-books-quran chapter verse)
-                     (cl-getf (cl-getf holy-books-quran-cache chapter) :name)
-                     (format "https://quran.com/%s" chapter)
-                     chapter verse)))
- :face '(:foreground "green" :weight bold))
+                      (holy-books-quran chapter verse)
+                      (cl-getf (cl-getf holy-books-quran-cache chapter) :name)
+                      (format "https://quran.com/%s" chapter)
+                      chapter verse)))
+  :face '(:foreground "green" :weight bold))
+
+(defvar holy-books-bible-version 'niv
+  "The version code of the Holy Bible; a symbol or string.
+
+Possible version codes include:
+
+Code   Version
+---------------------------------------
+niv    New International Version, DEFAULT
+asv    American Standard Version
+bbe    Bible in Basic English
+drb    Darby's Translation
+esv    English Standard Version
+kjv    King James Version
+nas    New American Standard
+nkjv   New King James Version
+nlt    New Living Translation
+nrs    New Revised Standard Version
+rsv    Revised Standard Version
+msg    The Message Bible
+web    World English Bible
+ylt    Young's Literal")
 
 (defun holy-books-bible (book chapter verses)
   "Retrive a verse from the Christian Bible.
@@ -215,6 +256,9 @@ Examples:
 There is also an Org HTML export link, “bible:book:chapter:verse”
 sharing the same optional arguments and variations as the “quran:” link;
 see the documentation of the method HOLY-BOOKS-QURAN for details.
+
+The particular version can be selected by altering the
+HOLY-BOOKS-BIBLE-VERSION variable.
 
 Currently, Bible lookups are not cached and Quran lookups do not support the
 “x-y” verse lookup style.
@@ -241,8 +285,8 @@ the first chapter of each book.
   (let (start result)
     (switch-to-buffer
      (url-retrieve-synchronously
-      (format "https://www.christianity.com/bible/bible.php?q=%s+%s%%3A%s"
-              book chapter verses)))
+      (format "https://www.christianity.com/bible/bible.php?q=%s+%s%%3A%s&ver=%s"
+              book chapter verses holy-books-bible-version)))
     (re-search-forward (format "<blockquote>"))
     (setq start (point))
     (re-search-forward (format "</blockquote>"))
