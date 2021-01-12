@@ -3,7 +3,7 @@
 ;; Copyright (c) 2021 Musa Al-hassy
 
 ;; Author: Musa Al-hassy <alhassy@gmail.com>
-;; Version: 1.2
+;; Version: 1.3
 ;; Package-Requires: ((s "1.12.0") (dash "2.16.0") (emacs "27.1") (org "9.1"))
 ;; Keywords: quran, bible, links, tooltips, convenience, comm, hypermedia
 ;; Repo: https://github.com/alhassy/holy-books
@@ -28,8 +28,8 @@
 ;; when writing about the Quran and the Bible:
 ;;
 ;; 0. Links “quran:chapter:verse|colour|size|no-info-p”, or just “quran:chapter:verse”
-;;    for retrieving a verse from the Quran.  Use “Quran:chapter:verse” to HTML export
-;;    as a tooltip.  The particular translation can be selected by altering the
+;;    for retrieving a verse from the Quran. Use “Quran:chapter:verse” to HTML export
+;;    as a tooltip. The particular translation can be selected by altering the
 ;;    HOLY-BOOKS-QURAN-TRANSLAITON variable.
 ;;
 ;; 1. Likewise, “bible:book:chapter:verse”.
@@ -43,9 +43,9 @@
 ;;
 ;; Minimal Working Example:
 ;;
-;; Sometimes I want to remember the words of the God of Abraham.  In English Bibles,
+;; Sometimes I want to remember the words of the God of Abraham. In English Bibles,
 ;; His name is “Elohim”, whereas in Arabic Bibles and the Quran, His name is
-;; “Allah”.  We can use links to quickly access them, such as Quran:7:157|darkgreen
+;; “Allah”. We can use links to quickly access them, such as Quran:7:157|darkgreen
 ;; and bible:Deuteronomy:18:18-22|darkblue.  Arab-speaking Christians and Muslims
 ;; use the Unicode symbol [[green:ﷲ]] to refer to Him ---e.g., they would write ﷲ ﷳ ,
 ;; “Allah akbar”, to declare the greatness of God-- and, as the previous passage
@@ -216,6 +216,17 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
                       chapter verse)))
   :face '(:foreground "green" :weight bold))
 
+(defun holy-books-insert-quran ()
+ "Insert a Quranic verse at point; prompt user for details."
+ (interactive)
+ (let ((chapter (string-to-number (read-string "Quran Chapter: ")))
+       (verse   (string-to-number (read-string "Quran Verse: "))))
+   (if (member 0 (list chapter verse))
+       (error (concat "holy-books ∷ There seems to be a typo;"
+                      "please enter appropriate numbers."))
+     (insert (holy-books-quran chapter verse))
+     (fill-paragraph))))
+
 (defvar holy-books-bible-version 'niv
   "The version code of the Holy Bible; a symbol or string.
 
@@ -347,6 +358,21 @@ the first chapter of each book.
                               book chapter)
                       book chapter verse)))
   :face '(:foreground "green" :weight bold))
+
+(defun holy-books-insert-bible ()
+ "Insert a Biblical verse at point; prompt user for details.
+
+See the documentation of HOLY-BOOKS-BIBLE for the appropriate
+names of books."
+ (interactive)
+ (let ((book    (read-string "Bible Book: "))
+       (chapter (string-to-number (read-string "Bible Chapter: ")))
+       (verse   (string-to-number (read-string "Bible Verse: "))))
+   (if (member 0 (list chapter verse))
+       (error (concat "holy-books ∷ There seems to be a typo;"
+                      "please enter appropriate numbers."))
+     (insert (s-trim (holy-books-bible book chapter verse)))
+     (fill-paragraph))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

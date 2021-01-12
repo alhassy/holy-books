@@ -10,7 +10,7 @@ Let's use Org-mode links to look-up Quranic and Biblical verses!
 
 “Live” examples & documentation: <https://alhassy.github.io/holy-books/>
 
-<a href="https://github.com/alhassy/holy-books"><img src="https://img.shields.io/badge/holy--books-1.0-informational?logo=Gnu-Emacs"></a>
+<a href="https://github.com/alhassy/holy-books"><img src="https://img.shields.io/badge/holy--books-1.3-informational?logo=Gnu-Emacs"></a>
 
 <a href="https://twitter.com/intent/tweet?text=This looks super neat (•̀ᴗ•́)و::&url=https://github.com/alhassy/holy-books"><img src="https://img.shields.io/twitter/url?url=https://github.com/alhassy/holy-books"></a>
 <a href="https://github.com/alhassy/holy-books/issues"><img src="https://img.shields.io/badge/contributions-welcome-green?logo=nil"></a>
@@ -94,6 +94,9 @@ Let's use Org-mode links to look-up Quranic and Biblical verses!
 These each take optional arguments separated by ‘|’; see <holy-books-quran>
 and <holy-books-bible> or see the full documentation online at
 <a href="https://alhassy.github.io/holy-books/"><img src="https://img.shields.io/badge/-HTML-informational?logo=ghost"></a>.
+
+There are also <holy-books-insert-quran> and <holy-books-insert-bible> to
+inject verses in the current Emacs buffer ;-)
 
 Moreover, the Quran's translation and the Bible's version can both be selected&#x2026;
 

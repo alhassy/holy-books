@@ -24,7 +24,7 @@ blog:header
 ;; Copyright (c) 2021 Musa Al-hassy
 
 ;; Author: Musa Al-hassy <alhassy@gmail.com>
-;; Version: 1.2
+;; Version: 1.3
 ;; Package-Requires: ((s "1.12.0") (dash "2.16.0") (emacs "27.1") (org "9.1"))
 ;; Keywords: quran, bible, links, tooltips, convenience, comm, hypermedia
 ;; Repo: https://github.com/alhassy/holy-books
@@ -137,7 +137,7 @@ badge:Emacs|27|green|https://www.gnu.org/software/emacs|gnu-emacs
 badge:Org|9.4|blue|https://orgmode.org|gnu
 
 #+html: <span>
-badge:holy-books|1.0|informational|https://github.com/alhassy/holy-books|Gnu-Emacs
+badge:holy-books|1.3|informational|https://github.com/alhassy/holy-books|Gnu-Emacs
 
 # #+html: <a href="https://melpa.org/#/holy-books"><img alt="MELPA" src="https://melpa.org/packages/holy-books-badge.svg"/></a>
 # #+html: </span>
@@ -514,6 +514,10 @@ link-here:Example-The-third-verse-of-each-chapter-of-the-Quran
  #+end_export
 #+end_details
 
+** holy-books-quran-cache
+   :PROPERTIES:
+   :CUSTOM_ID: holy-books-quran-cache
+   :END:
 #+begin_src emacs-lisp
 (defvar holy-books-quran-cache nil
   "A plist storing the verses looked up by ‘holy-books-quran’ for faster reuse.
@@ -523,6 +527,10 @@ Keys are verses numbers and values are the actual verses ---but there is
 a special key ‘:name’ whose value is the Arabic-English name of the chapter.")
 #+end_src
 
+** holy-books-quran-translation
+   :PROPERTIES:
+   :CUSTOM_ID: holy-books-quran-translation
+   :END:
 #+begin_src emacs-lisp
 (defvar holy-books-quran-translation "131"
   "Variable the defines the translation to be used.
@@ -533,6 +541,10 @@ List of translations can be found at:
 https://quran.api-docs.io/v3/options/translations")
 #+end_src
 
+** holy-books-quran
+   :PROPERTIES:
+   :CUSTOM_ID: holy-books-quran
+   :END:
 #+begin_src emacs-lisp
 (defun holy-books-quran (chapter verse)
   "Lookup a verse, as a string, from the Quran.
@@ -611,6 +623,10 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
         (setf (cl-getf (cl-getf holy-books-quran-cache chapter) verse))))))
 #+end_src
 
+** Links: ~quran:⋯~ and ~Quran:⋯~
+   :PROPERTIES:
+   :CUSTOM_ID: Links-quran-and-Quran
+   :END:
 #+begin_src emacs-lisp
 ;; quran:chapter:verse|color|size|no-info-p
 (org-link-set-parameters
@@ -658,6 +674,24 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
                       (format "https://quran.com/%s" chapter)
                       chapter verse)))
   :face '(:foreground "green" :weight bold))
+#+end_src
+
+** holy-books-insert-quran
+   :PROPERTIES:
+   :CUSTOM_ID: holy-books-insert-quran
+   :END:
+
+#+begin_src emacs-lisp
+(defun holy-books-insert-quran ()
+ "Insert a Quranic verse at point; prompt user for details."
+ (interactive)
+ (let ((chapter (string-to-number (read-string "Quran Chapter: ")))
+       (verse   (string-to-number (read-string "Quran Verse: "))))
+   (if (member 0 (list chapter verse))
+       (error (concat "holy-books ∷ There seems to be a typo;"
+                      "please enter appropriate numbers."))
+     (insert (holy-books-quran chapter verse))
+     (fill-paragraph))))
 #+end_src
 
 * holy-books-bible
@@ -887,6 +921,10 @@ link-here:Example-The-first-verse-of-the-first-chapter-of-each-book-of-the-Bible
  #+end_export
 #+end_details
 
+** holy-books-bible-version
+   :PROPERTIES:
+   :CUSTOM_ID: holy-books-bible-version
+   :END:
   #+begin_src emacs-lisp
 (defvar holy-books-bible-version 'niv
   "The version code of the Holy Bible; a symbol or string.
@@ -911,6 +949,10 @@ web    World English Bible
 ylt    Young's Literal")
 #+end_src
 
+** holy-books-bible
+   :PROPERTIES:
+   :CUSTOM_ID: holy-books-bible
+   :END:
 #+begin_src emacs-lisp
 (defun holy-books-bible (book chapter verses)
   "Retrive a verse from the Christian Bible.
@@ -978,6 +1020,10 @@ the first chapter of each book.
       (s-chop-suffix "\">"))))
 #+end_src
 
+** Links: ~bible:⋯~ and ~Bible:⋯~
+   :PROPERTIES:
+   :CUSTOM_ID: Links-bible-and-Bible
+   :END:
 #+begin_src emacs-lisp
 ;; bible:book:chapter:verses|color|size|no-info-p
 ;; Ex. bible:Deuteronomy:18:18-22|darkblue|40px
@@ -1025,6 +1071,28 @@ the first chapter of each book.
   :face '(:foreground "green" :weight bold))
 #+end_src
 
+** holy-books-insert-bible
+   :PROPERTIES:
+   :CUSTOM_ID: holy-books-insert-bible
+   :END:
+
+#+begin_src emacs-lisp
+(defun holy-books-insert-bible ()
+ "Insert a Biblical verse at point; prompt user for details.
+
+See the documentation of HOLY-BOOKS-BIBLE for the appropriate
+names of books."
+ (interactive)
+ (let ((book    (read-string "Bible Book: "))
+       (chapter (string-to-number (read-string "Bible Chapter: ")))
+       (verse   (string-to-number (read-string "Bible Verse: "))))
+   (if (member 0 (list chapter verse))
+       (error (concat "holy-books ∷ There seems to be a typo;"
+                      "please enter appropriate numbers."))
+     (insert (s-trim (holy-books-bible book chapter verse)))
+     (fill-paragraph))))
+#+end_src
+
 * Summary
   :PROPERTIES:
   :CUSTOM_ID: Summary
@@ -1047,6 +1115,9 @@ link-here:summary
 These each take optional arguments separated by ‘|’; see doc:holy-books-quran
 and doc:holy-books-bible or see the full documentation online at
 badge:|HTML|informational|https://alhassy.github.io/holy-books/|ghost.
+
+There are also doc:holy-books-insert-quran and doc:holy-books-insert-bible to
+inject verses in the current Emacs buffer ;-)
 
 # Following ‘details’ blocks are more for the resulting README than for the HTML.
 Moreover, the Quran's translation and the Bible's version can both be selected...
@@ -1359,7 +1430,7 @@ Let's use Org-mode links to look-up Quranic and Biblical verses!
 
 “Live” examples & documentation: https://alhassy.github.io/holy-books/
 
-badge:holy-books|1.0|informational|https://github.com/alhassy/holy-books|Gnu-Emacs
+badge:holy-books|1.3|informational|https://github.com/alhassy/holy-books|Gnu-Emacs
 
 # #+html: <a href=\"https://melpa.org/#/holy-books\"><img alt=\"MELPA\" src=\"https://melpa.org/packages/holy-books-badge.svg\"/></a>
 # #+html: </span>
