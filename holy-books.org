@@ -541,6 +541,7 @@ Code  Translation
 167   Maarif-ul-Quran
 57    Transliteration
 
+A longer list of translations can be found here: https://api.quran.com/api/v3/options/translations
 ")
 #+end_src
 
