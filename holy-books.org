@@ -1,5 +1,5 @@
 #+title: holy-books
-#+subtitle: An Emacs interface to the Quran and the Bible: Org-mode links, tooltips, and Lisp look-ups
+#+subtitle: An Emacs interface to the Quran and the Bible: Interactive lookup, Org-mode links, tooltips, and Lisp look-ups
 #+author: [[https://alhassy.github.io/][Musa Al-hassy]]
 #+PROPERTY: header-args:emacs-lisp :tangle holy-books.el :exports code
 #+options: d:nil toc:nil
@@ -169,24 +169,27 @@ For now, only the Quran and the Bible are supported.
 
 #+TOC: headlines 2
 
+* COMMENT Short Example :ignore:
+  :PROPERTIES:
+  :CUSTOM_ID: COMMENT-Short-Example
+  :END:
 /Super short example.../
 
-   #+begin_org-demo :source-color green :result-color white :style sequential :sep ""
+#+begin_org-demo :source-color green :result-color white :style sequential :sep ""
   Sometimes I start a task with the Lord's name--- basmala:darkgreen|20px|span
   ---which means quran:1:1|darkgreen.
   My friends like to say bible:Genesis:1:3|darkblue.
-   #+end_org-demo
-  #+begin_box Tooltips: Using Capitalisation ‘Quran:⋯’ and ‘Bible:⋯’ :background-color custard
+#+end_org-demo
+#+begin_box Tooltips: Using Capitalisation ‘Quran:⋯’ and ‘Bible:⋯’ :background-color custard
    Sometimes I start a task with the Lord's name--- basmala:darkgreen|20px|span
   ---which means Quran:1:1|darkgreen.
   My friends like to say Bible:Genesis:1:3|darkblue.
-  #+end_box
-* Longer Example
+#+end_box
+* COMMENT Longer Example
   :PROPERTIES:
   :CUSTOM_ID: Longer-Example
   :END:
-
-   #+begin_org-demo :style sequential :source-color green :result-color white :sep ""
+#+begin_org-demo :style sequential :source-color green :result-color white :sep ""
  Sometimes I want to remember the words of the God of Abraham. In English Bibles,
  His name is “Elohim”, whereas in Arabic Bibles and the Quran, His name is
  “Allah”. We can use links to quickly access them, such as quran:7:157|darkgreen
@@ -197,8 +200,8 @@ For now, only the Quran and the Bible are supported.
  by Arabic speakers when starting a task, namely [[basmala:darkgreen|20px|span]]
  ---this is known as the ‘basmalallah’, which is Arabic for “name of God”.
  (Using capitalised ‘Quran:⋯’ and ‘Bible:⋯’ results in tooltips.)
- #+end_org-demo
- #+begin_box Tooltips: Using Capitalisation ‘Quran:⋯’ and ‘Bible:⋯’ :background-color custard
+#+end_org-demo
+#+begin_box Tooltips: Using Capitalisation ‘Quran:⋯’ and ‘Bible:⋯’ :background-color custard
  Sometimes I want to remember the words of the God of Abraham. In English Bibles,
  His name is “Elohim”, whereas in Arabic Bibles and the Quran, His name is
  “Allah”. We can use links to quickly access them, such as Quran:7:157|darkgreen
@@ -209,7 +212,7 @@ For now, only the Quran and the Bible are supported.
  by Arabic speakers when starting a task, namely [[basmala:darkgreen|20px|span]]
  ---this is known as the ‘basmalallah’, which is Arabic for “name of God”.
  (Using capitalised ‘Quran:⋯’ and ‘Bible:⋯’ results in tooltips.)
- #+end_box
+#+end_box
 
 * Yet Another Example
   :PROPERTIES:
@@ -533,14 +536,13 @@ a special key ‘:name’ whose value is the Arabic-English name of the chapter.
    :END:
 #+begin_src emacs-lisp
 (defvar holy-books-quran-translation "131"
-  "
-The translation code of the Quran; a string.
+  "The translation code of the Quran; a string.
 
 Possible codes include
 
 Code  Translation
 --------------------
-131   Dr. Mustafa Khattab, the Clear Quran (Default)
+131   Dr.  Mustafa Khattab, the Clear Quran (Default)
 20    Sahih International
 85    Abdul Haleem
 19    Picktall
@@ -549,8 +551,8 @@ Code  Translation
 167   Maarif-ul-Quran
 57    Transliteration
 
-A longer list of translations can be found here: https://api.quran.com/api/v3/options/translations
-")
+A longer list of translations can be found here:
+https://api.quran.com/api/v3/options/translations")
 #+end_src
 
 ** holy-books-quran
@@ -1430,7 +1432,7 @@ https://github.com/riscy/melpazoid
 (with-temp-buffer
     (insert "
 ,#+EXPORT_FILE_NAME: README.md
-,#+HTML: <h1> An Emacs interface to the Quran and the Bible: Org-mode links, tooltips, and Lisp look-ups </h1>
+,#+HTML: <h1> An Emacs interface to the Quran and the Bible: Interactive lookup, Org-mode links, tooltips, and Lisp look-ups </h1>
 # +HTML: <h2>  ¯\\_(ツ)_/¯  </h2>
 ,#+OPTIONS: toc:nil d:nil broken-links:t
 ,#+html: <div align=\"center\">

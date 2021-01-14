@@ -86,12 +86,23 @@ Keys are verses numbers and values are the actual verses ---but there is
 a special key ‘:name’ whose value is the Arabic-English name of the chapter.")
 
 (defvar holy-books-quran-translation "131"
-  "Variable the defines the translation to be used.
+  "The translation code of the Quran; a string.
 
-        131 -- Dr.  Mustafa Khattab, the Clear Quran
+Possible codes include
 
-List of translations can be found at:
-https://quran.api-docs.io/v3/options/translations")
+Code  Translation
+--------------------
+131   Dr.  Mustafa Khattab, the Clear Quran (Default)
+20    Sahih International
+85    Abdul Haleem
+19    Picktall
+22    Yusuf Ali
+95    Abul Ala Maududi
+167   Maarif-ul-Quran
+57    Transliteration
+
+A longer list of translations can be found here:
+https://api.quran.com/api/v3/options/translations")
 
 (defun holy-books-quran (chapter verse)
   "Lookup a verse, as a string, from the Quran.
