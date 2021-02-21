@@ -1,5 +1,5 @@
 (setq needed-libraries
-      '(s cl-lib dash org))
+      '(s cl-lib dash org undercover))
 
 (require 'package)
 (push '("melpa" . "https://melpa.org/packages/") package-archives)
@@ -10,14 +10,10 @@
   (unless (package-installed-p pkg)
     (package-install pkg)))
 
-
-(require 's)               ;; “The long lost Emacs string manipulation library”
-(require 'dash)            ;; “A modern list library for Emacs”
-(require 'cl-lib)          ;; New Common Lisp library; ‘cl-???’ forms.
-(require 'org)
+(undercover "*.el" (:report-format 'codecov)
+                   (:send-report nil))
 
 (load-file "holy-books.el")
-
 
 (ert-deftest basmala/empty ()
   (should (equal
