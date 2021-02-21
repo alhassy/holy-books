@@ -10,8 +10,7 @@
   (unless (package-installed-p pkg)
     (package-install pkg)))
 
-(undercover "*.el" (:report-format 'codecov)
-                   (:send-report nil))
+(undercover "*.el" (:report-format 'codecov))
 
 (load-file "holy-books.el")
 
