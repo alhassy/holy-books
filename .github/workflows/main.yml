@@ -29,7 +29,7 @@ jobs:
         uses: purcell/setup-emacs@v3.0
         with:
           # The version of Emacs to install, e.g. "24.3", or "snapshot" for a recent development version.
-          version: # optional
+          version: 27.1 # optional
 
       # Runs a single command using the runners shell
       # - name: Run a one-line script
