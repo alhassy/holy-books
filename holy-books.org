@@ -269,7 +269,28 @@ centred form: basmala:darkgreen.
   :face '(:foreground "green" :weight bold))
  #+end_src
 
- #+RESULTS:
+
+#+begin_details
+#+begin_src emacs-lisp :tangle tests.el
+(load-file "holy-books.el")
+
+(ert-deftest basmala/empty ()
+  (should (equal
+           (org-export-string-as "[[basmala:]]" 'html :body-only)
+"<p>
+<center style=\"color:;font-size:60px;padding:25px\">
+                     ﷽
+                </center></p>
+")))
+#+end_src
+
+
+
+
+#+RESULTS:
+
+
+#+end_details
 
 * holy-books-quran
   :PROPERTIES:
