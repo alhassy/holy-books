@@ -6,6 +6,8 @@
 
 <div align="center">
 
+![example workflow](https://github.com/alhassy/holy-books/actions/workflows/main.yml/badge.svg)
+
 Let's use Org-mode links to look-up Quranic and Biblical verses!
 
 “Live” examples & documentation: <https://alhassy.github.io/holy-books/>
