@@ -67,6 +67,22 @@
 (require 'cl-lib)          ;; New Common Lisp library; ‘cl-???’ forms.
 (require 'org)
 
+
+(org-link-set-parameters
+  "basmala"
+  :follow (lambda (label) nil)
+  :export (lambda (label description backend)
+            (-let [(color size html-tag) (s-split "|" label)]
+              (format
+               "<%s style=\"color:%s;font-size:%s;padding:25px\">
+                     ﷽
+                </%s>"
+               (or html-tag "center")
+               (or color 'darkgreen)
+               (or size '60px)
+               (or html-tag "center"))))
+  :face '(:foreground "green" :weight bold))
+
 (defconst holy-books-version (package-get-version))
 (defun holy-books-version ()
   "Print the current holy-books version in the minibuffer."
