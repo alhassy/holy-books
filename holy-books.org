@@ -130,7 +130,7 @@ to enable/disable when being toggled.
 * Testing :noexport:
 #+begin_src emacs-lisp :tangle tests.el
 (setq needed-libraries
-      '(s cl-lib dash org undercover))
+      '(s cl-lib dash org undercover seq quelpa))
 
 (require 'package)
 (push '("melpa" . "https://melpa.org/packages/") package-archives)
@@ -141,15 +141,30 @@ to enable/disable when being toggled.
   (unless (package-installed-p pkg)
     (package-install pkg)))
 
-(undercover "*.el" (:report-format 'codecov)
-                   (:send-report nil))
+(defmacro deftest (desc &rest body)
+  `(ert-deftest ,(intern
+;; Convert all non-letters to ‘_’
+;; A = 65, z = 122
+(concat (seq-map (lambda (c) (if (<= 65 c 122) c ?_))
+         desc))) () ,@body))
+;; without the s-replace, “M-x ert” crashes when it comes to selecting the test to run.
+
+
+;; https://github.com/Wilfred/propcheck
+(quelpa '(propcheck :fetcher github :repo "Wilfred/propcheck"))
+(require 'propcheck)
+(when nil ;; example use
+  (let ((propcheck-seed (propcheck-seed)))
+    (propcheck-generate-string nil)))
+
 
 (load-file "holy-books.el")
 #+end_src
 
 --------------------------------------------------------------------------------
 
-The following creates the “Github Actions Workflow” file.
+The following creates the “Github Actions Workflow” file;
+this way, Github will run your tests every time you commit ^_^
 
 #+begin_src shell :tangle .github/workflows/main.yml :mkdirp yes
 # This workflow will do a clean install of dependencies and run tests
@@ -198,10 +213,10 @@ jobs:
 
       - name: Run tests
         run: emacs -batch -l ert -l tests.el -f ert-run-tests-batch-and-exit
+#+end_src
 
       # Upload coverage
       - uses: codecov/codecov-action@v1
-#+end_src
 
 * Abstract :ignore:
   :PROPERTIES:
@@ -346,10 +361,7 @@ centred form: basmala:darkgreen.
   :face '(:foreground "green" :weight bold))
  #+end_src
 
- #+RESULTS:
-
-
-#+begin_details
+#+begin_details Tests
 #+begin_src emacs-lisp :tangle tests.el
 (ert-deftest basmala/empty ()
   (should (equal
@@ -359,14 +371,16 @@ centred form: basmala:darkgreen.
                      ﷽
                 </center></p>
 ")))
+
+(ert-deftest basmala/empty ()
+  (should (equal
+           (org-export-string-as "basmala:green" 'html :body-only)
+"<p>
+<center style=\"color:green;font-size:60px;padding:25px\">
+                     ﷽
+                </center></p>
+")))
 #+end_src
-
-
-
-
-#+RESULTS:
-
-
 #+end_details
 
 * holy-books-quran
@@ -615,6 +629,23 @@ link-here:Example-The-third-verse-of-each-chapter-of-the-Quran
  #+end_export
 #+end_details
 
+#+begin_details Tests
+#+begin_src emacs-lisp :tangle tests.el
+(ert-deftest holy-books-quran/1:1 ()
+  (should (equal
+           (holy-books-quran 1 1)
+           "  In the Name of Allah—the Most Compassionate, Most Merciful.")))
+
+(ert-deftest quran/1:1 ()
+  (should (equal
+           (org-export-string-as "quran:1:1" 'html :body-only)
+"<p>
+<span style=\"color:nil;font-size:nil;\">
+                             ﴾<em>   In the Name of Allah—the Most Compassionate, Most Merciful.</em>﴿ <small><a href=\"https://quran.com/chapter_info/1?local=en\">Quran 1:1, Al-fatihah The Opener</a></small>
+                       </span></p>
+")))
+#+end_details
+
 ** holy-books-quran-cache
    :PROPERTIES:
    :CUSTOM_ID: holy-books-quran-cache
@@ -803,6 +834,8 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
                                      :name))))))
  :face '(:foreground "green" :weight bold))
 #+end_src
+
+#+RESULTS:
 
 ** holy-books-insert-quran
    :PROPERTIES:
@@ -1047,6 +1080,28 @@ link-here:Example-The-first-verse-of-the-first-chapter-of-each-book-of-the-Bible
  <hr>Revelation ∷
                              The revelation from Jesus Christ, which God gave him to show his servants what must soon take place. He made it known by sending his angel to his servant John,
  #+end_export
+#+end_details
+
+#+begin_details Tests
+#+begin_src emacs-lisp :tangle tests.el
+(ert-deftest holy-books-bible/Genesis:1:2 ()
+  (should (equal
+           (holy-books-bible  "Genesis" 1 "1")
+
+"
+                            In the beginning God created the heavens and the earth.                        "
+)))
+
+(ert-deftest bible/Genesis:1:2 ()
+  (should (equal
+           (org-export-string-as "bible:Genesis:1:2" 'html :body-only)
+"<p>
+<span style=\"color:nil;font-size:nil;\">
+                             ﴾<em>
+                            &nbsp;Now the earth was formless and empty, darkness was over the surface of the deep, and the Spirit of God was hovering over the waters.                        </em>﴿ <small><a href=\"https://www.christianity.com/bible/bible.php?q=Genesis+1&ver=niv\">Genesis 1:2</a></small>
+                       </span></p>
+"
+)))
 #+end_details
 
 ** holy-books-bible-version
