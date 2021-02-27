@@ -3,7 +3,7 @@
 ;; Copyright (c) 2021 Musa Al-hassy
 
 ;; Author: Musa Al-hassy <alhassy@gmail.com>
-;; Version: 1.3
+;; Version: 1.4
 ;; Package-Requires: ((s "1.12.0") (dash "2.16.0") (emacs "27.1") (org "9.1"))
 ;; Keywords: quran, bible, links, tooltips, convenience, comm, hypermedia
 ;; Repo: https://github.com/alhassy/holy-books
@@ -67,6 +67,16 @@
 (require 'cl-lib)          ;; New Common Lisp library; ‘cl-???’ forms.
 (require 'org)
 
+(defconst holy-books-version (package-get-version))
+(defun holy-books-version ()
+  "Print the current holy-books version in the minibuffer."
+  (interactive)
+  (message holy-books-version))
+
+;;;###autoload
+(define-minor-mode holy-books-mode
+    "Org-mode links, tooltips, and Lisp look-ups for the Quran & Bible."
+  nil nil nil)
 
 (org-link-set-parameters
   "basmala"
@@ -82,17 +92,6 @@
                (or size '60px)
                (or html-tag "center"))))
   :face '(:foreground "green" :weight bold))
-
-(defconst holy-books-version (package-get-version))
-(defun holy-books-version ()
-  "Print the current holy-books version in the minibuffer."
-  (interactive)
-  (message holy-books-version))
-
-;;;###autoload
-(define-minor-mode holy-books-mode
-    "Org-mode links, tooltips, and Lisp look-ups for the Quran & Bible."
-  nil nil nil)
 
 (defvar holy-books-quran-cache nil
   "A plist storing the verses looked up by ‘holy-books-quran’ for faster reuse.
@@ -198,50 +197,66 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
 
 ;; quran:chapter:verse|color|size|no-info-p
 (org-link-set-parameters
-  "quran"
-  :follow (lambda (_) nil)
-  :export (lambda (label _ __)
-            (-let* (((chapter:verse color size no-info-p) (s-split "|" label))
-                    ((chapter verse) (s-split ":" chapter:verse)))
-              (format "<span style=\"color:%s;font-size:%s;\">
+ "quran"
+ :follow (lambda (_) nil)
+ :export (lambda (label _ backend)
+           (-let* (((chapter:verse color size no-info-p) (s-split "|" label))
+                   ((chapter verse) (s-split ":" chapter:verse)))
+             (cond ((eq 'html backend)
+                    (format "<span style=\"color:%s;font-size:%s;\">
                              ﴾<em> %s</em>﴿ %s
                        </span>"
-                      color size
-                      (holy-books-quran chapter verse)
-                      (if no-info-p
-                          ""
-                        (format
-                         (concat
-                          "<small>"
-                            "<a href="
-                               "\"https://quran.com/chapter_info/%s?local=en\">"
-                              "Quran %s:%s, %s"
-                             "</a>"
-                          "</small>")
-                         chapter
-                         chapter
-                         verse
-                         (cl-getf (cl-getf holy-books-quran-cache chapter)
-                                  :name))))))
-  :face '(:foreground "green" :weight bold))
+                            color size
+                            (holy-books-quran chapter verse)
+                            (if no-info-p
+                                ""
+                              (format
+                               (concat
+                                "<small>"
+                                "<a href="
+                                "\"https://quran.com/chapter_info/%s?local=en\">"
+                                "Quran %s:%s, %s"
+                                "</a>"
+                                "</small>")
+                               chapter
+                               chapter
+                               verse
+                               (cl-getf (cl-getf holy-books-quran-cache chapter)
+                                        :name)))))
+                   ((eq 'md backend)
+                    (format "\n> %s\n>\n> %s\n"
+                            (holy-books-quran chapter verse)
+                            (if no-info-p
+                                ""
+                              (format "[Quran %s:%s %s](https://quran.com/chapter_info/%s)"
+                                      chapter verse (cl-getf (cl-getf holy-books-quran-cache chapter) :name)
+                                      chapter)))))))
+ :face '(:foreground "green" :weight bold))
 
 
 ;; Quran:chapter:verse|color|size|no-info-p
 (org-link-set-parameters
-  "Quran"
-  :follow (lambda (_) nil)
-  :export (lambda (label _ __)
-            (-let* (((chapter:verse _ __ ___) (s-split "|" label))
-                    ((chapter verse) (s-split ":" chapter:verse)))
-              (format "<abbr class=\"tooltip\"
+ "Quran"
+ :follow (lambda (_) nil)
+ :export (lambda (label _ backend)
+           (-let* (((chapter:verse _ __ ___) (s-split "|" label))
+                   ((chapter verse) (s-split ":" chapter:verse)))
+             (cond ((eq 'html backend)
+                    (format "<abbr class=\"tooltip\"
                              title=\"﴾<em> %s</em>﴿ <br><br> %s <br><br> %s\">
                           Quran %s:%s
                        </abbr>&emsp13;"
-                      (holy-books-quran chapter verse)
-                      (cl-getf (cl-getf holy-books-quran-cache chapter) :name)
-                      (format "https://quran.com/%s" chapter)
-                      chapter verse)))
-  :face '(:foreground "green" :weight bold))
+                            (holy-books-quran chapter verse)
+                            (cl-getf (cl-getf holy-books-quran-cache chapter) :name)
+                            (format "https://quran.com/%s" chapter)
+                            chapter verse))
+                   ((eq 'md backend)
+                    (format "[Quran %s:%s](%s \"%s - %s\")" chapter verse
+                            (format "https://quran.com/%s" chapter)
+                            (split-string (holy-books-quran chapter verse))
+                            (cl-getf (cl-getf holy-books-quran-cache chapter)
+                                     :name))))))
+ :face '(:foreground "green" :weight bold))
 
 (defun holy-books-insert-quran ()
  "Insert a Quranic verse at point; prompt user for details."
@@ -344,47 +359,64 @@ the first chapter of each book.
 ;; bible:book:chapter:verses|color|size|no-info-p
 ;; Ex. bible:Deuteronomy:18:18-22|darkblue|40px
 (org-link-set-parameters
-  "bible"
-  :follow (lambda (_) nil)
-  :export (lambda (label _ __)
-            (-let* (((book:chapter:verse color size no-info-p)
-                     (s-split "|" label))
-                    ((book chapter verse) (s-split ":" book:chapter:verse)))
-              (format "<span style=\"color:%s;font-size:%s;\">
+ "bible"
+ :follow (lambda (_) nil)
+ :export (lambda (label _ backend)
+           (-let* (((book:chapter:verse color size no-info-p)
+                    (s-split "|" label))
+                   ((book chapter verse) (s-split ":" book:chapter:verse)))
+             (cond ((eq 'html backend)
+                    (format "<span style=\"color:%s;font-size:%s;\">
                              ﴾<em> %s</em>﴿ %s
                        </span>"
-                      color size
-                      (holy-books-bible book chapter verse)
-                      (if no-info-p
-                          ""
-                        (format
-                         (concat "<small>"
-                                   "<a href=\"https://www.christianity.com"
-                                        "/bible/bible.php?q=%s+%s&ver=niv\">"
-                                     "%s %s:%s"
-                                   "</a>"
-                                 "</small>")
-                         book chapter book chapter verse)))))
-  :face '(:foreground "green" :weight bold))
+                            color size
+                            (holy-books-bible book chapter verse)
+                            (if no-info-p
+                                ""
+                              (format
+                               (concat "<small>"
+                                       "<a href=\"https://www.christianity.com"
+                                       "/bible/bible.php?q=%s+%s&ver=niv\">"
+                                       "%s %s:%s"
+                                       "</a>"
+                                       "</small>")
+                               book chapter book chapter verse))))
+                   ((eq 'md backend)
+                    (format "\n> %s\n>\n>%s\n"
+                            (holy-books-bible book chapter verse)
+                            (if no-info-p
+                                ""
+                              (format "[%s %s:%s](https://www.christianity.com/bible/bible.php?q=%s+%s&ver=niv)"
+                                      book chapter verse
+                                      book chapter verse)))))))
+ :face '(:foreground "green" :weight bold))
 
 ;; Bible:book:chapter:verses|color|size|no-info-p
 ;; Ex. Bible:Deuteronomy:18:18-22|darkblue|40px
 (org-link-set-parameters
-  "Bible"
-  :follow (lambda (_) nil)
-  :export (lambda (label _ __)
-            (-let* (((book:chapter:verse _ __ ___) (s-split "|" label))
-                    ((book chapter verse) (s-split ":" book:chapter:verse)))
-              (format "<abbr class=\"tooltip\"
+ "Bible"
+ :follow (lambda (_) nil)
+ :export (lambda (label _ backend)
+           (-let* (((book:chapter:verse _ __ ___) (s-split "|" label))
+                   ((book chapter verse) (s-split ":" book:chapter:verse)))
+             (cond ((eq 'html backend)
+
+                    (format "<abbr class=\"tooltip\"
                              title=\"﴾<em> %s</em>﴿ <br><br> %s\">
                          %s %s:%s
                        </abbr>&emsp13;"
-                      (s-replace "\"" "″" (holy-books-bible book chapter verse))
-                      (format (concat "https://www.christianity.com/"
-                                      "bible/bible.php?q=%s+%s")
-                              book chapter)
-                      book chapter verse)))
-  :face '(:foreground "green" :weight bold))
+                            (s-replace "\"" "″" (holy-books-bible book chapter verse))
+                            (format (concat "https://www.christianity.com/"
+                                            "bible/bible.php?q=%s+%s")
+                                    book chapter)
+                            book chapter verse))
+                   ((eq 'md backend)
+                    (format "[%s %s:%s](%s \"%s\")" book chapter verse
+                            (format (concat "https://www.christianity.com/"
+                                            "bible/bible.php?q=%s+%s") book chapter)
+                            (split-string (s-replace "\"" "″" (holy-books-bible book chapter verse)))
+                            )))))
+ :face '(:foreground "green" :weight bold))
 
 (defun holy-books-insert-bible ()
  "Insert a Biblical verse at point; prompt user for details.
