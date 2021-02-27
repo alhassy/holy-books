@@ -6,7 +6,17 @@
 
 <div align="center">
 
-![example workflow](https://github.com/alhassy/holy-books/actions/workflows/main.yml/badge.svg)
+
+
+
+
+
+<a href="https://github.com/alhassy/holy-books/blob/main/tests.el"><img src="https://github.com/alhassy/holy-books/actions/workflows/main.yml/badge.svg"></a>
+
+
+
+
+
 
 Let's use Org-mode links to look-up Quranic and Biblical verses!
 
@@ -19,8 +29,6 @@ Let's use Org-mode links to look-up Quranic and Biblical verses!
 
 <a href="https://alhassy.github.io/"><img src="https://img.shields.io/badge/author-musa_al--hassy-purple?logo=nintendo-3ds"></a>
 <a href="https://www.buymeacoffee.com/alhassy"><img src="https://img.shields.io/badge/-buy_me_a%C2%A0coffee-gray?logo=buy-me-a-coffee"></a>
-
-<a href="https://alhassy.github.io/about"><img src="https://img.shields.io/badge/Hire-me-success?logo=nil"></a>
 
 </div>
 
