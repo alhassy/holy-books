@@ -3,7 +3,7 @@
 ;; Copyright (c) 2021 Musa Al-hassy
 
 ;; Author: Musa Al-hassy <alhassy@gmail.com>
-;; Version: 1.4
+;; Version: 1.4.1
 ;; Package-Requires: ((s "1.12.0") (dash "2.16.0") (emacs "27.1") (org "9.1"))
 ;; Keywords: quran, bible, links, tooltips, convenience, comm, hypermedia
 ;; Repo: https://github.com/alhassy/holy-books
@@ -184,11 +184,10 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
        (url-retrieve-synchronously
         (format "https://quran.com/%s/%s?translations=%s"
                 chapter verse holy-books-quran-translation)))
-      (re-search-forward "d-block resource")
-      (forward-line -2)
-      (beginning-of-line)
+      (re-search-forward "<p class=\"text text--grey text--medium text--regular translation\">")
       (setq start (point))
-      (end-of-line)
+      (re-search-forward "</p>")
+      (beginning-of-line)
       (setq result (buffer-substring-no-properties start (point)))
       (kill-buffer)
       (thread-last (decode-coding-string result 'utf-8)
