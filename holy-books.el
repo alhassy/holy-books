@@ -3,7 +3,7 @@
 ;; Copyright (c) 2021 Musa Al-hassy
 
 ;; Author: Musa Al-hassy <alhassy@gmail.com>
-;; Version: 1.4.1
+;; Version: 1.5
 ;; Package-Requires: ((s "1.12.0") (dash "2.16.0") (emacs "27.1") (org "9.1"))
 ;; Keywords: quran, bible, links, tooltips, convenience, comm, hypermedia
 ;; Repo: https://github.com/alhassy/holy-books
@@ -257,6 +257,10 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
                                      :name))))))
  :face '(:foreground "green" :weight bold))
 
+(defun holy-books--remove-html-markup (html)
+  (s-replace-regexp "&nbsp;" ""
+                    (s-replace-regexp "<.*?>"  "" html)))
+
 (defun holy-books-insert-quran ()
  "Insert a Quranic verse at point; prompt user for details."
  (interactive)
@@ -265,7 +269,7 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
    (if (member 0 (list chapter verse))
        (error (concat "holy-books ∷ There seems to be a typo;"
                       "please enter appropriate numbers."))
-     (insert (holy-books-quran chapter verse))
+     (insert (holy-books--remove-html-markup (holy-books-quran chapter verse)))
      (fill-paragraph))))
 
 (defvar holy-books-bible-version 'niv
@@ -355,6 +359,10 @@ the first chapter of each book.
       (s-chop-suffix "</")
       (s-chop-suffix "\">"))))
 
+(defvar holy-books-bible-format-for-verses
+  "﴾<em> %s</em>﴿"
+  "How should verses be styled?")
+
 ;; bible:book:chapter:verses|color|size|no-info-p
 ;; Ex. bible:Deuteronomy:18:18-22|darkblue|40px
 (org-link-set-parameters
@@ -365,9 +373,9 @@ the first chapter of each book.
                     (s-split "|" label))
                    ((book chapter verse) (s-split ":" book:chapter:verse)))
              (cond ((eq 'html backend)
-                    (format "<span style=\"color:%s;font-size:%s;\">
-                             ﴾<em> %s</em>﴿ %s
-                       </span>"
+                    (format (concat "<span style=\"color:%s;font-size:%s;\">"
+                                    holy-books-bible-format-for-verses ;; ≈ ﴾<em> %s</em>﴿
+                                    "%s </span>")
                             color size
                             (holy-books-bible book chapter verse)
                             (if no-info-p
@@ -387,7 +395,12 @@ the first chapter of each book.
                                 ""
                               (format "[%s %s:%s](https://www.christianity.com/bible/bible.php?q=%s+%s&ver=niv)"
                                       book chapter verse
-                                      book chapter verse)))))))
+                                      book chapter verse))))
+                   (t (format "﴾%s﴿ [%s %s:%s]"
+                    (s-replace-regexp "&nbsp;" ""
+                      (s-replace-regexp "<.*?>"  ""
+                                        (s-collapse-whitespace (holy-books-bible book chapter verse))))
+                    book chapter verse)))))
  :face '(:foreground "green" :weight bold))
 
 ;; Bible:book:chapter:verses|color|size|no-info-p
@@ -414,7 +427,12 @@ the first chapter of each book.
                             (format (concat "https://www.christianity.com/"
                                             "bible/bible.php?q=%s+%s") book chapter)
                             (split-string (s-replace "\"" "″" (holy-books-bible book chapter verse)))
-                            )))))
+                            ))
+                                      (t (format "﴾%s﴿ [%s %s:%s]"
+                    (s-replace-regexp "&nbsp;" ""
+                      (s-replace-regexp "<.*?>"  ""
+                                        (s-collapse-whitespace (holy-books-bible book chapter verse))))
+                    book chapter verse)))))
  :face '(:foreground "green" :weight bold))
 
 (defun holy-books-insert-bible ()
@@ -425,11 +443,11 @@ names of books."
  (interactive)
  (let ((book    (read-string "Bible Book: "))
        (chapter (string-to-number (read-string "Bible Chapter: ")))
-       (verse   (string-to-number (read-string "Bible Verse: "))))
+       (verse   (read-string "Bible Verse: "))) ;; Can be a range; e.g., "18-22"
    (if (member 0 (list chapter verse))
        (error (concat "holy-books ∷ There seems to be a typo;"
                       "please enter appropriate numbers."))
-     (insert (s-trim (holy-books-bible book chapter verse)))
+     (insert (holy-books--remove-html-markup (s-trim (holy-books-bible book chapter verse))))
      (fill-paragraph))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
