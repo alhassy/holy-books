@@ -1,19 +1,18 @@
 #+title: holy-books
 #+subtitle: An Emacs interface to the Quran and the Bible: Interactive lookup, Org-mode links, tooltips, and Lisp look-ups
 #+author: [[https://alhassy.github.io/][Musa Al-hassy]]
+#+fileimage: images/short_example.png 350 253
 #+PROPERTY: header-args:emacs-lisp :tangle holy-books.el :exports code
 #+options: d:nil toc:nil
 #+EXPORT_FILE_NAME: index
 #+PROPERTY: header-args :eval never-export
+#+modified: 2026-10-15
 
 # MA: To reuse this setup for other projects: M-% holy-books ⟪new-pacakge-name⟫
 # For tests, update the variable “needed-libraries”
 
 # (progn (org-babel-tangle-file "holy-books.org") (load-file "holy-books.el") (holy-books-mode) )
 
-# (load-file "~/blog/AlBasmala.el")
-# (require 'org-static-blog)
-blog:header
 
 * Lisp Package Preamble                                            :noexport:
   :PROPERTIES:
