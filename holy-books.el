@@ -1,9 +1,9 @@
 ;;; holy-books.el --- Org-mode links/tooltips/lookups for Quran & Bible  -*- lexical-binding: t; -*-
 
-;; Copyright (c) 2021 Musa Al-hassy
+;; Copyright (c) 2021-2026 Musa Al-hassy
 
 ;; Author: Musa Al-hassy <alhassy@gmail.com>
-;; Version: 1.5
+;; Version: 26.10.14
 ;; Package-Requires: ((s "1.12.0") (dash "2.16.0") (emacs "27.1") (org "9.1"))
 ;; Keywords: quran, bible, links, tooltips, convenience, comm, hypermedia
 ;; Repo: https://github.com/alhassy/holy-books
@@ -66,6 +66,14 @@
 (require 'dash)            ;; “A modern list library for Emacs”
 (require 'cl-lib)          ;; New Common Lisp library; ‘cl-???’ forms.
 (require 'org)
+(require 'url)
+
+(defvar url-http-end-of-headers)
+(defun holy-books--fetch (url)
+  "URL ↦ the body of its response, decoded as UTF-8."
+  (with-current-buffer (url-retrieve-synchronously url t t 30)
+    (prog1 (decode-coding-string (buffer-substring (1+ url-http-end-of-headers) (point-max)) 'utf-8)
+      (kill-buffer))))
 
 (defconst holy-books-version (package-get-version))
 (defun holy-books-version ()
@@ -107,17 +115,18 @@ Possible codes include
 
 Code  Translation
 --------------------
-131   Dr.  Mustafa Khattab, the Clear Quran (Default)
-20    Sahih International
-85    Abdul Haleem
-19    Picktall
-22    Yusuf Ali
-95    Abul Ala Maududi
-167   Maarif-ul-Quran
+131   Dr. Mustafa Khattab, The Clear Quran (Default)
+20    Saheeh International
+85    M.A.S. Abdel Haleem
+19    M. Pickthall
+22    A. Yusuf Ali
+95    A. Maududi (Tafhim commentary)
+84    T. Usmani
+203   Al-Hilali & Khan
 57    Transliteration
 
-A longer list of translations can be found here:
-https://api.quran.com/api/v3/options/translations")
+Any translation in quran.com's “Translations” menu works; most codes are listed here:
+https://api.quran.com/api/v4/resources/translations")
 
 (defun holy-books-quran (chapter verse)
   "Lookup a verse, as a string, from the Quran.
@@ -157,42 +166,35 @@ For now, only Org HTML export is supported.
 Finally, there is also an HTML tooltip version with a captial ‘Q’;
 it takes the same arguments but only the chapter and verse are actually used.
 E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the verse."
-  (let (start result)
-    ;; get info about the current chapter
-    (unless (cl-getf (cl-getf holy-books-quran-cache chapter) :name)
-      (switch-to-buffer
-       (url-retrieve-synchronously
-        (format "https://quran.com/%s/%s?translations=%s"
-                chapter verse holy-books-quran-translation)))
-      (re-search-forward (format "\"%s " chapter))
-      (setq start (point))
-      (end-of-line)
-      (setq result (buffer-substring-no-properties start (point)))
-      (kill-buffer)
-      (thread-last (decode-coding-string result 'utf-8)
-        (s-chop-suffix "\">")
-        (s-split " ")
-        (-drop-last 1)
-        (mapcar #'s-capitalize)
-        (s-join " ")
-        (setf (cl-getf (cl-getf holy-books-quran-cache chapter) :name))))
+  (unless (cl-getf (cl-getf holy-books-quran-cache chapter) verse)
+    (-let [(name . text) (or (ignore-errors (holy-books--quran-from-page chapter verse))
+                             (holy-books--quran-from-api chapter verse))]
+      (setf (cl-getf (cl-getf holy-books-quran-cache chapter) :name) name)
+      (setf (cl-getf (cl-getf holy-books-quran-cache chapter) verse)
+            (s-replace-regexp "<sup[^>]*>[^<]*</sup>" "" text)))) ;; Footnote markers
+  (cl-getf (cl-getf holy-books-quran-cache chapter) verse))
 
-    ;; get the actual verse requested
-    (--if-let (cl-getf (cl-getf holy-books-quran-cache chapter) verse)
-        it
-      (switch-to-buffer
-       (url-retrieve-synchronously
-        (format "https://quran.com/%s/%s?translations=%s"
-                chapter verse holy-books-quran-translation)))
-      (re-search-forward "<p class=\"text text--grey text--medium text--regular translation\">")
-      (setq start (point))
-      (re-search-forward "</p>")
-      (beginning-of-line)
-      (setq result (buffer-substring-no-properties start (point)))
-      (kill-buffer)
-      (thread-last (decode-coding-string result 'utf-8)
-        (s-replace-regexp "<sup.*sup>" "")
-        (setf (cl-getf (cl-getf holy-books-quran-cache chapter) verse))))))
+;; quran.com's public API lacks some translations, such as 131, so we first read the JSON its pages embed;
+;; that is the site's internal Next.js state, not a published API, hence the fallback.
+(defun holy-books--quran-from-page (chapter verse)
+  "(chapter, verse) ↦ (chapter-name . verse-text), from the JSON embedded in quran.com's page for the verse."
+  (let-alist (let* ((page (holy-books--fetch (format "https://quran.com/%s:%s?translations=%s"
+                                                     chapter verse holy-books-quran-translation)))
+                    (json (cadr (s-match "<script id=\"__NEXT_DATA__\"[^>]*>\\(\\(?:.\\|\n\\)*?\\)</script>" page))))
+               (alist-get 'pageProps (alist-get 'props (json-parse-string json :object-type 'alist))))
+    (-when-let (text (alist-get 'text (seq-find #'always (alist-get 'translations (seq-first .versesResponse.verses)))))
+      (cons (format "%s %s" .chapterResponse.chapter.transliteratedName .chapterResponse.chapter.translatedName)
+            text))))
+
+(defun holy-books--quran-from-api (chapter verse)
+  "(chapter, verse) ↦ (chapter-name . verse-text), from quran.com's public API; if it lacks our translation, use 20."
+  (cl-labels ((api (path) (json-parse-string (holy-books--fetch (concat "https://api.quran.com/api/v4/" path))
+                                             :object-type 'alist))
+            (verse-in (translation) (thread-last (format "quran/translations/%s?verse_key=%s:%s" translation chapter verse)
+                                      (api) (alist-get 'translations) (seq-find #'always) (alist-get 'text))))
+    (let-alist (alist-get 'chapter (api (format "chapters/%s" chapter)))
+      (cons (format "%s %s" .name_simple .translated_name.name)
+            (or (verse-in holy-books-quran-translation) (verse-in "20"))))))
 
 ;; quran:chapter:verse|color|size|no-info-p
 (org-link-set-parameters
@@ -200,7 +202,7 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
  :follow (lambda (_) nil)
  :export (lambda (label _ backend)
            (-let* (((chapter:verse color size no-info-p) (s-split "|" label))
-                   ((chapter verse) (s-split ":" chapter:verse)))
+                   ((chapter verse) (mapcar #'string-to-number (s-split ":" chapter:verse))))
              (cond ((eq 'html backend)
                     (format "<span style=\"color:%s;font-size:%s;\">
                              ﴾<em> %s</em>﴿ %s
@@ -239,7 +241,7 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
  :follow (lambda (_) nil)
  :export (lambda (label _ backend)
            (-let* (((chapter:verse _ __ ___) (s-split "|" label))
-                   ((chapter verse) (s-split ":" chapter:verse)))
+                   ((chapter verse) (mapcar #'string-to-number (s-split ":" chapter:verse))))
              (cond ((eq 'html backend)
                     (format "<abbr class=\"tooltip\"
                              title=\"﴾<em> %s</em>﴿ <br><br> %s <br><br> %s\">
@@ -252,7 +254,7 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
                    ((eq 'md backend)
                     (format "[Quran %s:%s](%s \"%s - %s\")" chapter verse
                             (format "https://quran.com/%s" chapter)
-                            (split-string (holy-books-quran chapter verse))
+                            (s-replace "\"" "″" (holy-books-quran chapter verse))
                             (cl-getf (cl-getf holy-books-quran-cache chapter)
                                      :name))))))
  :face '(:foreground "green" :weight bold))
@@ -338,26 +340,15 @@ For example, the following incantation yields the first verse of
 the first chapter of each book.
 
    (s-join \"\n\n<hr>\" (--map (holy-books-bible it 1 1) '(...above list...)))"
-  (let (start result)
-    (switch-to-buffer
-     (url-retrieve-synchronously
-      (format "https://www.christianity.com/bible/bible.php?q=%s+%s%%3A%s&ver=%s"
-              book chapter verses holy-books-bible-version)))
-    (re-search-forward (format "<blockquote>"))
-    (setq start (point))
-    (re-search-forward (format "</blockquote>"))
-    (backward-word)
-    (setq result (buffer-substring-no-properties start (point)))
-    (kill-buffer)
-    (thread-last (decode-coding-string result 'utf-8)
-      (s-replace-regexp
-       "<span class=\"verse-num\"><strong><a href=\".*?\">.*?</strong> </a>"
-       "")
-      (s-replace-regexp "<h4>.*?big-chapter-num.*?&nbsp;" "")
-      (s-replace-regexp "<a href=\".*?\">.*?</a>" "")
-      (s-replace-all '(("</p>" . "") ("<p>" . "") ("</span>" . "")))
-      (s-chop-suffix "</")
-      (s-chop-suffix "\">"))))
+  (thread-last (holy-books--fetch
+                (format "https://www.christianity.com/bible/bible.php?q=%s+%s%%3A%s&ver=%s"
+                        book chapter verses holy-books-bible-version))
+    (s-match "passage-text\">\\(?:.\\|\n\\)*?<p[^>]*>\\(\\(?:.\\|\n\\)*?\\)</p>")
+    (cadr)
+    (s-replace-regexp "<span[^>]*class=\"\\(big-chapter\\|verse-num\\)[^>]*>.*?</span>\\(&nbsp;\\)?" "")
+    (s-replace-regexp "<footnote>.*?</footnote>" "")
+    (s-replace-regexp "<.*?>" "") ;; Small-caps, etc.
+    (s-trim)))
 
 (defvar holy-books-bible-format-for-verses
   "﴾<em> %s</em>﴿"
@@ -426,7 +417,7 @@ the first chapter of each book.
                     (format "[%s %s:%s](%s \"%s\")" book chapter verse
                             (format (concat "https://www.christianity.com/"
                                             "bible/bible.php?q=%s+%s") book chapter)
-                            (split-string (s-replace "\"" "″" (holy-books-bible book chapter verse)))
+                            (s-replace "\"" "″" (holy-books-bible book chapter verse))
                             ))
                                       (t (format "﴾%s﴿ [%s %s:%s]"
                     (s-replace-regexp "&nbsp;" ""

@@ -22,10 +22,10 @@ blog:header
 #+BEGIN_SRC emacs-lisp  :noweb yes
 ;;; holy-books.el --- Org-mode links/tooltips/lookups for Quran & Bible  -*- lexical-binding: t; -*-
 
-;; Copyright (c) 2021 Musa Al-hassy
+;; Copyright (c) 2021-2026 Musa Al-hassy
 
 ;; Author: Musa Al-hassy <alhassy@gmail.com>
-;; Version: 1.5
+;; Version: 26.10.14
 ;; Package-Requires: ((s "1.12.0") (dash "2.16.0") (emacs "27.1") (org "9.1"))
 ;; Keywords: quran, bible, links, tooltips, convenience, comm, hypermedia
 ;; Repo: https://github.com/alhassy/holy-books
@@ -88,6 +88,14 @@ blog:header
 (require 'dash)            ;; “A modern list library for Emacs”
 (require 'cl-lib)          ;; New Common Lisp library; ‘cl-???’ forms.
 (require 'org)
+(require 'url)
+
+(defvar url-http-end-of-headers)
+(defun holy-books--fetch (url)
+  "URL ↦ the body of its response, decoded as UTF-8."
+  (with-current-buffer (url-retrieve-synchronously url t t 30)
+    (prog1 (decode-coding-string (buffer-substring (1+ url-http-end-of-headers) (point-max)) 'utf-8)
+      (kill-buffer))))
 
 (defconst holy-books-version (package-get-version))
 (defun holy-books-version ()
@@ -132,67 +140,30 @@ to enable/disable when being toggled.
   :CUSTOM_ID: Testing
   :END:
 #+begin_src emacs-lisp :tangle tests.el
-(setq needed-libraries
-      '(s cl-lib dash org undercover seq quelpa))
-
-(require 'package)
-(push '("melpa" . "https://melpa.org/packages/") package-archives)
+;; Dependencies ---`s', `dash', and `snap' (with its `fancy-C-x-C-e')--- are installed by the CI workflow below;
+;; snap is not yet on MELPA, so we expect clones of it in ~/snap and ~/fancy-C-x-C-e.
 (package-initialize)
-(unless package-archive-contents
-  (package-refresh-contents))
-(dolist (pkg needed-libraries)
-  (unless (package-installed-p pkg)
-    (package-install pkg)))
-
-(defmacro deftest (desc &rest body)
-  `(ert-deftest ,(intern
-;; Convert all non-letters to ‘_’
-;; A = 65, z = 122
-(concat (seq-map (lambda (c) (if (<= 65 c 122) c ?_))
-         desc))) () ,@body))
-;; without the s-replace, “M-x ert” crashes when it comes to selecting the test to run.
-
-
-;; https://github.com/Wilfred/propcheck
-(quelpa '(propcheck :fetcher github :repo "Wilfred/propcheck"))
-(require 'propcheck)
-(when nil ;; example use
-  (let ((propcheck-seed (propcheck-seed)))
-    (propcheck-generate-string nil)))
-
-;; An attempt to make multiline strings less ugly
+(add-to-list 'load-path (expand-file-name "~/snap"))
+(add-to-list 'load-path (expand-file-name "~/fancy-C-x-C-e"))
+(require 'snap)
+(snap-define-fixture deftest) ;; The identity fixture: plain ERT tests with natural-language names
 (require 's)
-(defun unindent (s)
-"Allow multiline strings, ignoring any initial indentation (as in Ruby).
-
-The first line of S must be an empty line.
-
-For instance,
-
-(unindent \"
-     Hello
-       and then some\")
-
-Returns the string:
-
-Hello
-  and then some
-
-Notice that the initial indentation has been stripped uniformally
-across all lines: The second line begins 2 characters indentated
-from the first."
-  (let ((indentation (length (car (s-match "\\( \\)+" (cadr (s-split "\n" s)))))))
-    (s-chop-prefix "\n"
-                   (replace-regexp-in-string (format "^ \\{%s\\}" indentation) "" s))))
-
-
-(defalias '§ #'unindent)
-(§ "
-   Hello
-       and then some")
-
 
 (load-file "holy-books.el")
+
+;; Run all with M-x ert RET (tag html-export) RET; refresh a stale :html with C-u C-x C-e on its test.
+(snap-define-relation html-export (org html)
+  "Exporting the ORG snippet, body-only, yields HTML."
+  (let ((actual (org-export-string-as org 'html :body-only)))
+    (should (equal html actual))
+    (list :html actual)))
+
+(require 'ox-md)
+(snap-define-relation md-export (org md)
+  "Exporting the ORG snippet, body-only and without a table of contents, yields Markdown MD."
+  (let ((actual (org-export-string-as org 'md :body-only '(:with-toc nil))))
+    (should (equal md actual))
+    (list :md actual)))
 #+end_src
 
 --------------------------------------------------------------------------------
@@ -205,53 +176,53 @@ if you use =master= as the name, then change that
 or otherwise the tests will not trigger automatically
 after push!
 
-#+begin_src shell :tangle .github/workflows/main.yml :mkdirp yes
-# This workflow will do a clean install of dependencies and run tests
-# For more information see: https://help.github.com/actions/language-and-framework-guides/
+This file is the single source: =holy-books.el=, =tests.el=, and the workflow itself are
+tangled from it.  So CI first re-tangles and fails if =git diff --exit-code= finds the
+committed files differ ---say, a pull request that patched =holy-books.el= directly.  The
+fix is always the same: make the change here, tangle, and commit both.
 
+#+begin_src shell :tangle .github/workflows/main.yml :mkdirp yes
 name: Tests
 
-# Controls when the action will run.
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Set up Emacs
-        uses: purcell/setup-emacs@v3.0
+      - uses: purcell/setup-emacs@v8.0
         with:
-          # The version of Emacs to install, e.g. "24.3", or "snapshot" for a recent development version.
-          version: 27.1 # optional
+          version: 30.1
 
-      # Runs a single command using the runners shell
-      # - name: Run a one-line script
-      #  run: echo Hello, world!
+      # holy-books.org is the source; fail if the committed tangled files have drifted from it.
+      - name: Check the tangle is a fixpoint
+        run: |
+          emacs -Q --batch --eval "(progn (require 'ob-tangle) (org-babel-tangle-file \"holy-books.org\"))"
+          git diff --exit-code
 
-      # Runs a set of commands using the runners shell
-      # - name: Run a multi-line script
-      #  run: |
-      #    echo Add other actions to build,
-      #    echo test, and deploy your project.
+      # snap is not yet on MELPA; tests.el expects it, and its fancy-C-x-C-e dependency, in ~
+      - name: Fetch snap
+        run: |
+          git clone --depth 1 https://github.com/alhassy/snap ~/snap
+          git clone --depth 1 https://github.com/alhassy/fancy-C-x-C-e ~/fancy-C-x-C-e
+
+      - name: Install MELPA dependencies
+        run: |
+          emacs --batch --eval "(progn
+            (require 'package)
+            (add-to-list 'package-archives '(\"melpa\" . \"https://melpa.org/packages/\") t)
+            (package-initialize) (package-refresh-contents)
+            (dolist (p '(s dash)) (package-install p)))"
 
       - name: Run tests
-        run: emacs -batch -l ert -l tests.el -f ert-run-tests-batch-and-exit
+        run: emacs --batch -l ert -l tests.el -f ert-run-tests-batch-and-exit
 #+end_src
 
       # Upload coverage
@@ -407,25 +378,21 @@ centred form: basmala:darkgreen.
 
 #+begin_details Tests
 #+begin_src emacs-lisp :tangle tests.el
-(ert-deftest basmala/empty ()
-  (should (equal
-           (org-export-string-as "[[basmala:]]" 'html :body-only)
-           (unindent
-             "<p>
-             <center style=\"color:;font-size:60px;padding:25px\">
-                                  ﷽
-                             </center></p>
-             "))))
+(define-html-export-test "basmala with no arguments has an empty colour"
+  :org "[[basmala:]]"
+  :html "<p>
+<center style=\"color:;font-size:60px;padding:25px\">
+                     ﷽
+                </center></p>
+")
 
-(ert-deftest basmala/green ()
-  (should (equal
-           (org-export-string-as "basmala:green" 'html :body-only)
-           (unindent
-             "<p>
-             <center style=\"color:green;font-size:60px;padding:25px\">
-                                  ﷽
-                             </center></p>
-             "))))
+(define-html-export-test "basmala with a colour argument uses it"
+  :org "basmala:green"
+  :html "<p>
+<center style=\"color:green;font-size:60px;padding:25px\">
+                     ﷽
+                </center></p>
+")
 #+end_src
 #+end_details
 
@@ -677,24 +644,61 @@ link-here:Example-The-third-verse-of-each-chapter-of-the-Quran
 
 #+begin_details Tests
 #+begin_src emacs-lisp :tangle tests.el
-(ert-deftest quran/lisp/1:1 ()
-  (should (equal
-           (holy-books-quran 1 1)
-           "
-    In the Name of Allah—the Most Compassionate, Most Merciful.
-")))
+(deftest "quran looks up a verse in the default translation, The Clear Quran"
+  (should (equal (holy-books-quran 1 1) "In the Name of Allah—the Most Compassionate, Most Merciful.")))
 
-(ert-deftest quran/link/1:1 ()
-    :expected-result :failed
-  (should (equal
-           (org-export-string-as "quran:1:1" 'html :body-only)
-           "<p>
-<span style=\"color:nil;font-size:nil;\">
-                             ﴾<em>
-    In the Name of Allah—the Most Compassionate, Most Merciful.
-</em>﴿ <small><a href=\"https://quran.com/chapter_info/1?local=en\">Quran 1:1, Al-fatihah The Opener</a></small>
+(deftest "quran falls back to the public API, and Saheeh International, when the page JSON fails"
+  (cl-letf (((symbol-function 'holy-books--quran-from-page) #'ignore))
+    (let (holy-books-quran-cache)
+      (should (equal (holy-books-quran 1 1)
+                     "In the name of Allāh, the Entirely Merciful, the Especially Merciful.")))))
+
+(deftest "quran drops footnote markers"
+  (should-not (s-contains? "<sup" (holy-books-quran 7 157))))
+
+(deftest "quran caches the chapter name alongside the verse"
+  (holy-books-quran 112 3)
+  (should (equal (cl-getf (cl-getf holy-books-quran-cache 112) :name) "Al-Ikhlas The Sincerity")))
+
+(define-html-export-test "quran link with |colour|size|no-info-p styles the verse and omits its reference"
+  :org "quran:1:1|darkgreen|30px|t"
+  :html "<p>
+<span style=\"color:darkgreen;font-size:30px;\">
+                             ﴾<em> In the Name of Allah—the Most Compassionate, Most Merciful.</em>﴿ 
                        </span></p>
-")))
+")
+
+(define-html-export-test "Quran link is a tooltip carrying the verse and chapter name"
+  :org "Quran:1:1"
+  :html "<p>
+<abbr class=\"tooltip\"
+                             title=\"﴾<em> In the Name of Allah—the Most Compassionate, Most Merciful.</em>﴿ <br><br> Al-Fatihah The Opener <br><br> https://quran.com/1\">
+                          Quran 1:1
+                       </abbr>&emsp13;</p>
+")
+
+(define-md-export-test "quran link is a blockquote followed by its reference"
+  :org "quran:1:1"
+  :md "
+> In the Name of Allah—the Most Compassionate, Most Merciful.
+>
+> [Quran 1:1 Al-Fatihah The Opener](https://quran.com/chapter_info/1)
+
+")
+
+(define-md-export-test "Quran link is a Markdown link whose title is the verse and chapter name"
+  :org "Quran:1:1"
+  :md "[Quran 1:1](https://quran.com/1 \"In the Name of Allah—the Most Compassionate, Most Merciful. - Al-Fatihah The Opener\")
+
+")
+
+(define-html-export-test "quran link shows the verse and its chapter name"
+  :org "quran:1:1"
+  :html "<p>
+<span style=\"color:nil;font-size:nil;\">
+                             ﴾<em> In the Name of Allah—the Most Compassionate, Most Merciful.</em>﴿ <small><a href=\"https://quran.com/chapter_info/1?local=en\">Quran 1:1, Al-Fatihah The Opener</a></small>
+                       </span></p>
+")
 
 #+end_src
 #+end_details
@@ -727,17 +731,18 @@ Possible codes include
 
 Code  Translation
 --------------------
-131   Dr.  Mustafa Khattab, the Clear Quran (Default)
-20    Sahih International
-85    Abdul Haleem
-19    Picktall
-22    Yusuf Ali
-95    Abul Ala Maududi
-167   Maarif-ul-Quran
+131   Dr. Mustafa Khattab, The Clear Quran (Default)
+20    Saheeh International
+85    M.A.S. Abdel Haleem
+19    M. Pickthall
+22    A. Yusuf Ali
+95    A. Maududi (Tafhim commentary)
+84    T. Usmani
+203   Al-Hilali & Khan
 57    Transliteration
 
-A longer list of translations can be found here:
-https://api.quran.com/api/v3/options/translations")
+Any translation in quran.com's “Translations” menu works; most codes are listed here:
+https://api.quran.com/api/v4/resources/translations")
 #+end_src
 
 ** holy-books-quran
@@ -783,42 +788,35 @@ For now, only Org HTML export is supported.
 Finally, there is also an HTML tooltip version with a captial ‘Q’;
 it takes the same arguments but only the chapter and verse are actually used.
 E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the verse."
-  (let (start result)
-    ;; get info about the current chapter
-    (unless (cl-getf (cl-getf holy-books-quran-cache chapter) :name)
-      (switch-to-buffer
-       (url-retrieve-synchronously
-        (format "https://quran.com/%s/%s?translations=%s"
-                chapter verse holy-books-quran-translation)))
-      (re-search-forward (format "\"%s " chapter))
-      (setq start (point))
-      (end-of-line)
-      (setq result (buffer-substring-no-properties start (point)))
-      (kill-buffer)
-      (thread-last (decode-coding-string result 'utf-8)
-        (s-chop-suffix "\">")
-        (s-split " ")
-        (-drop-last 1)
-        (mapcar #'s-capitalize)
-        (s-join " ")
-        (setf (cl-getf (cl-getf holy-books-quran-cache chapter) :name))))
+  (unless (cl-getf (cl-getf holy-books-quran-cache chapter) verse)
+    (-let [(name . text) (or (ignore-errors (holy-books--quran-from-page chapter verse))
+                             (holy-books--quran-from-api chapter verse))]
+      (setf (cl-getf (cl-getf holy-books-quran-cache chapter) :name) name)
+      (setf (cl-getf (cl-getf holy-books-quran-cache chapter) verse)
+            (s-replace-regexp "<sup[^>]*>[^<]*</sup>" "" text)))) ;; Footnote markers
+  (cl-getf (cl-getf holy-books-quran-cache chapter) verse))
 
-    ;; get the actual verse requested
-    (--if-let (cl-getf (cl-getf holy-books-quran-cache chapter) verse)
-        it
-      (switch-to-buffer
-       (url-retrieve-synchronously
-        (format "https://quran.com/%s/%s?translations=%s"
-                chapter verse holy-books-quran-translation)))
-      (re-search-forward "<p class=\"text text--grey text--medium text--regular translation\">")
-      (setq start (point))
-      (re-search-forward "</p>")
-      (beginning-of-line)
-      (setq result (buffer-substring-no-properties start (point)))
-      (kill-buffer)
-      (thread-last (decode-coding-string result 'utf-8)
-        (s-replace-regexp "<sup.*sup>" "")
-        (setf (cl-getf (cl-getf holy-books-quran-cache chapter) verse))))))
+;; quran.com's public API lacks some translations, such as 131, so we first read the JSON its pages embed;
+;; that is the site's internal Next.js state, not a published API, hence the fallback.
+(defun holy-books--quran-from-page (chapter verse)
+  "(chapter, verse) ↦ (chapter-name . verse-text), from the JSON embedded in quran.com's page for the verse."
+  (let-alist (let* ((page (holy-books--fetch (format "https://quran.com/%s:%s?translations=%s"
+                                                     chapter verse holy-books-quran-translation)))
+                    (json (cadr (s-match "<script id=\"__NEXT_DATA__\"[^>]*>\\(\\(?:.\\|\n\\)*?\\)</script>" page))))
+               (alist-get 'pageProps (alist-get 'props (json-parse-string json :object-type 'alist))))
+    (-when-let (text (alist-get 'text (seq-find #'always (alist-get 'translations (seq-first .versesResponse.verses)))))
+      (cons (format "%s %s" .chapterResponse.chapter.transliteratedName .chapterResponse.chapter.translatedName)
+            text))))
+
+(defun holy-books--quran-from-api (chapter verse)
+  "(chapter, verse) ↦ (chapter-name . verse-text), from quran.com's public API; if it lacks our translation, use 20."
+  (cl-labels ((api (path) (json-parse-string (holy-books--fetch (concat "https://api.quran.com/api/v4/" path))
+                                             :object-type 'alist))
+            (verse-in (translation) (thread-last (format "quran/translations/%s?verse_key=%s:%s" translation chapter verse)
+                                      (api) (alist-get 'translations) (seq-find #'always) (alist-get 'text))))
+    (let-alist (alist-get 'chapter (api (format "chapters/%s" chapter)))
+      (cons (format "%s %s" .name_simple .translated_name.name)
+            (or (verse-in holy-books-quran-translation) (verse-in "20"))))))
 #+end_src
 
 #+RESULTS:
@@ -834,7 +832,7 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
  :follow (lambda (_) nil)
  :export (lambda (label _ backend)
            (-let* (((chapter:verse color size no-info-p) (s-split "|" label))
-                   ((chapter verse) (s-split ":" chapter:verse)))
+                   ((chapter verse) (mapcar #'string-to-number (s-split ":" chapter:verse))))
              (cond ((eq 'html backend)
                     (format "<span style=\"color:%s;font-size:%s;\">
                              ﴾<em> %s</em>﴿ %s
@@ -873,7 +871,7 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
  :follow (lambda (_) nil)
  :export (lambda (label _ backend)
            (-let* (((chapter:verse _ __ ___) (s-split "|" label))
-                   ((chapter verse) (s-split ":" chapter:verse)))
+                   ((chapter verse) (mapcar #'string-to-number (s-split ":" chapter:verse))))
              (cond ((eq 'html backend)
                     (format "<abbr class=\"tooltip\"
                              title=\"﴾<em> %s</em>﴿ <br><br> %s <br><br> %s\">
@@ -886,7 +884,7 @@ E.g. Quran:7:157 results in text “Quran 7:157” with a tooltip showing the ve
                    ((eq 'md backend)
                     (format "[Quran %s:%s](%s \"%s - %s\")" chapter verse
                             (format "https://quran.com/%s" chapter)
-                            (split-string (holy-books-quran chapter verse))
+                            (s-replace "\"" "″" (holy-books-quran chapter verse))
                             (cl-getf (cl-getf holy-books-quran-cache chapter)
                                      :name))))))
  :face '(:foreground "green" :weight bold))
@@ -1145,20 +1143,43 @@ link-here:Example-The-first-verse-of-the-first-chapter-of-each-book-of-the-Bible
 
 #+begin_details Tests
 #+begin_src emacs-lisp :tangle tests.el
-(ert-deftest bible/lisp/Genesis:1:2 ()
-  (should (equal
-           (holy-books-bible  "Genesis" 1 "1")
+(deftest "bible looks up a verse"
+  (should (equal (holy-books-bible "Genesis" 1 "1")
+                 "In the beginning God created the heavens and the earth.")))
 
-"
-                        In the beginning God created the heavens and the earth.                    "
-)))
+(deftest "bible looks up a verse range, dropping the verse numbers"
+  (should (equal (holy-books-bible "Deuteronomy" 18 "18-19")
+                 "I will raise up for them a prophet like you from among their fellow Israelites, and I will put my words in his mouth. He will tell them everything I command him. I myself will call to account anyone who does not listen to my words that the prophet speaks in my name.")))
 
-(ert-deftest bible/link/Genesis:1:2 ()
- :expected-result :failed
-  (should (equal
-           (s-collapse-whitespace (org-export-string-as "bible:Genesis:1:2" 'html :body-only))
+(define-html-export-test "Bible link is a tooltip carrying the verse"
+  :org "Bible:Genesis:1:1"
+  :html "<p>
+<abbr class=\"tooltip\"
+                             title=\"﴾<em> In the beginning God created the heavens and the earth.</em>﴿ <br><br> https://www.christianity.com/bible/bible.php?q=Genesis+1\">
+                         Genesis 1:1
+                       </abbr>&emsp13;</p>
+")
 
-"<p> <span style=\"color:nil;font-size:nil;\"> ﴾<em> <span class=\"verse-num\"><strong></strong>&nbsp;Now the earth was formless and empty, darkness was over the surface of the deep, and the Spirit of God was hovering over the waters. </em>﴿ <small><a href=\"https://www.christianity.com/bible/bible.php?q=Genesis+1&ver=niv\">Genesis 1:2</a></small> </span></p> ")))
+(define-md-export-test "bible link is a blockquote followed by its reference"
+  :org "bible:Genesis:1:1"
+  :md "
+> In the beginning God created the heavens and the earth.
+>
+>[Genesis 1:1](https://www.christianity.com/bible/bible.php?q=Genesis+1&ver=niv)
+
+")
+
+(define-md-export-test "Bible link is a Markdown link whose title is the verse"
+  :org "Bible:Genesis:1:1"
+  :md "[Genesis 1:1](https://www.christianity.com/bible/bible.php?q=Genesis+1 \"In the beginning God created the heavens and the earth.\")
+
+")
+
+(define-html-export-test "bible link shows the verse and its reference"
+  :org "bible:Genesis:1:2"
+  :html "<p>
+<span style=\"color:nil;font-size:nil;\">﴾<em> Now the earth was formless and empty, darkness was over the surface of the deep, and the Spirit of God was hovering over the waters.</em>﴿<small><a href=\"https://www.christianity.com/bible/bible.php?q=Genesis+1&ver=niv\">Genesis 1:2</a></small> </span></p>
+")
 
 #+end_src
 #+end_details
@@ -1243,26 +1264,15 @@ For example, the following incantation yields the first verse of
 the first chapter of each book.
 
    (s-join \"\n\n<hr>\" (--map (holy-books-bible it 1 1) '(...above list...)))"
-  (let (start result)
-    (switch-to-buffer
-     (url-retrieve-synchronously
-      (format "https://www.christianity.com/bible/bible.php?q=%s+%s%%3A%s&ver=%s"
-              book chapter verses holy-books-bible-version)))
-    (re-search-forward (format "<blockquote>"))
-    (setq start (point))
-    (re-search-forward (format "</blockquote>"))
-    (backward-word)
-    (setq result (buffer-substring-no-properties start (point)))
-    (kill-buffer)
-    (thread-last (decode-coding-string result 'utf-8)
-      (s-replace-regexp
-       "<span class=\"verse-num\"><strong><a href=\".*?\">.*?</strong> </a>"
-       "")
-      (s-replace-regexp "<h4>.*?big-chapter-num.*?&nbsp;" "")
-      (s-replace-regexp "<a href=\".*?\">.*?</a>" "")
-      (s-replace-all '(("</p>" . "") ("<p>" . "") ("</span>" . "")))
-      (s-chop-suffix "</")
-      (s-chop-suffix "\">"))))
+  (thread-last (holy-books--fetch
+                (format "https://www.christianity.com/bible/bible.php?q=%s+%s%%3A%s&ver=%s"
+                        book chapter verses holy-books-bible-version))
+    (s-match "passage-text\">\\(?:.\\|\n\\)*?<p[^>]*>\\(\\(?:.\\|\n\\)*?\\)</p>")
+    (cadr)
+    (s-replace-regexp "<span[^>]*class=\"\\(big-chapter\\|verse-num\\)[^>]*>.*?</span>\\(&nbsp;\\)?" "")
+    (s-replace-regexp "<footnote>.*?</footnote>" "")
+    (s-replace-regexp "<.*?>" "") ;; Small-caps, etc.
+    (s-trim)))
 #+end_src
 
 ** Links: ~bible:⋯~ and ~Bible:⋯~
@@ -1337,7 +1347,7 @@ the first chapter of each book.
                     (format "[%s %s:%s](%s \"%s\")" book chapter verse
                             (format (concat "https://www.christianity.com/"
                                             "bible/bible.php?q=%s+%s") book chapter)
-                            (split-string (s-replace "\"" "″" (holy-books-bible book chapter verse)))
+                            (s-replace "\"" "″" (holy-books-bible book chapter verse))
                             ))
                                       (t (format "﴾%s﴿ [%s %s:%s]"
                     (s-replace-regexp "&nbsp;" ""
